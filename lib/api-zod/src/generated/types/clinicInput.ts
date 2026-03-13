@@ -19,6 +19,10 @@ export interface ClinicInput {
   openHours: string;
   pointsPerVisit: number;
   /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+  /** @nullable */
   description?: string | null;
   /** @nullable */
   descriptionAr?: string | null;

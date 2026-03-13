@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -12,15 +12,16 @@ import {
   View,
   useColorScheme,
   ScrollView,
-  Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
+import ClinicMapView from "@/components/ClinicMapView";
 import { useAppContext } from "@/context/AppContext";
 import type { Clinic } from "@/context/AppContext";
 
 const OMAN_CENTER = { latitude: 23.588, longitude: 58.3829 };
+const INITIAL_DELTA = { latitudeDelta: 0.15, longitudeDelta: 0.15 };
 
 function getDistanceKm(
   lat1: number,
@@ -47,12 +48,113 @@ function openDirections(lat: number, lng: number, name: string) {
     Linking.openURL(`maps:?daddr=${lat},${lng}&q=${encodedName}`);
   } else {
     Linking.openURL(
-      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodedName}`
+      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
     );
   }
 }
 
-function ClinicCard({
+function ClinicInfoCard({
+  clinic,
+  distance,
+  colors,
+  onClose,
+}: {
+  clinic: Clinic;
+  distance: number | null;
+  colors: typeof Colors.light;
+  onClose: () => void;
+}) {
+  const hasLocation = clinic.latitude != null && clinic.longitude != null;
+
+  return (
+    <View style={[styles.infoCard, { backgroundColor: colors.backgroundCard }]}>
+      <Pressable onPress={onClose} style={styles.infoCardClose}>
+        <Feather name="x" size={18} color={colors.textMuted} />
+      </Pressable>
+
+      <Pressable
+        onPress={() => router.push(`/clinic/${clinic.id}`)}
+        style={styles.infoCardContent}
+      >
+        <View style={styles.infoCardRow}>
+          <View
+            style={[
+              styles.infoCardAvatar,
+              { backgroundColor: colors.tint + "15" },
+            ]}
+          >
+            <Text style={[styles.infoCardAvatarText, { color: colors.tint }]}>
+              {clinic.name
+                .split(" ")
+                .slice(0, 2)
+                .map((w) => w[0])
+                .join("")}
+            </Text>
+          </View>
+          <View style={styles.infoCardDetails}>
+            <Text
+              style={[styles.infoCardName, { color: colors.text }]}
+              numberOfLines={1}
+            >
+              {clinic.name}
+            </Text>
+            <Text
+              style={[styles.infoCardSpecialty, { color: colors.textSecondary }]}
+              numberOfLines={1}
+            >
+              {clinic.specialty}
+            </Text>
+            <View style={styles.infoCardMeta}>
+              <View
+                style={[
+                  styles.ratingBadge,
+                  { backgroundColor: colors.accent + "15" },
+                ]}
+              >
+                <Feather name="star" size={12} color={colors.accent} />
+                <Text style={[styles.ratingText, { color: colors.accent }]}>
+                  {clinic.rating.toFixed(1)}
+                </Text>
+              </View>
+              {distance !== null && (
+                <Text style={[styles.distanceText, { color: colors.tint }]}>
+                  {distance < 1
+                    ? `${Math.round(distance * 1000)} م`
+                    : `${distance.toFixed(1)} كم`}
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </Pressable>
+
+      <View style={styles.infoCardActions}>
+        <Pressable
+          onPress={() => Linking.openURL(`tel:${clinic.phone}`)}
+          style={[styles.actionBtn, { backgroundColor: colors.tint + "15" }]}
+        >
+          <Feather name="phone" size={16} color={colors.tint} />
+          <Text style={[styles.actionBtnText, { color: colors.tint }]}>
+            اتصال
+          </Text>
+        </Pressable>
+        {hasLocation && (
+          <Pressable
+            onPress={() =>
+              openDirections(clinic.latitude!, clinic.longitude!, clinic.name)
+            }
+            style={[styles.actionBtn, { backgroundColor: colors.tint }]}
+          >
+            <Feather name="navigation" size={16} color="#fff" />
+            <Text style={[styles.actionBtnTextWhite]}>الاتجاهات</Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function ClinicListCard({
   clinic,
   distance,
   colors,
@@ -66,13 +168,16 @@ function ClinicCard({
   return (
     <Pressable
       onPress={() => router.push(`/clinic/${clinic.id}`)}
-      style={[styles.clinicCard, { backgroundColor: colors.backgroundCard }]}
+      style={[styles.listCard, { backgroundColor: colors.backgroundCard }]}
     >
-      <View style={styles.cardRow}>
+      <View style={styles.listCardRow}>
         <View
-          style={[styles.cardAvatar, { backgroundColor: colors.tint + "15" }]}
+          style={[
+            styles.infoCardAvatar,
+            { backgroundColor: colors.tint + "15" },
+          ]}
         >
-          <Text style={[styles.cardAvatarText, { color: colors.tint }]}>
+          <Text style={[styles.infoCardAvatarText, { color: colors.tint }]}>
             {clinic.name
               .split(" ")
               .slice(0, 2)
@@ -80,67 +185,66 @@ function ClinicCard({
               .join("")}
           </Text>
         </View>
-        <View style={styles.cardInfo}>
+        <View style={styles.listCardInfo}>
           <Text
-            style={[styles.cardName, { color: colors.text }]}
+            style={[styles.infoCardName, { color: colors.text }]}
             numberOfLines={1}
           >
             {clinic.name}
           </Text>
           <Text
-            style={[styles.cardSpecialty, { color: colors.textSecondary }]}
+            style={[styles.infoCardSpecialty, { color: colors.textSecondary }]}
             numberOfLines={1}
           >
             {clinic.specialty}
           </Text>
-          <View style={styles.cardMeta}>
-            <View style={styles.cardMetaItem}>
+          <View style={styles.infoCardMeta}>
+            <View style={styles.metaItem}>
               <Feather name="map-pin" size={12} color={colors.textMuted} />
               <Text
-                style={[styles.cardMetaText, { color: colors.textMuted }]}
+                style={[styles.metaText, { color: colors.textMuted }]}
                 numberOfLines={1}
               >
                 {clinic.address}
               </Text>
             </View>
             {distance !== null && (
-              <View style={styles.cardMetaItem}>
-                <Feather name="navigation" size={12} color={colors.tint} />
-                <Text style={[styles.cardDistance, { color: colors.tint }]}>
-                  {distance < 1
-                    ? `${Math.round(distance * 1000)} م`
-                    : `${distance.toFixed(1)} كم`}
-                </Text>
-              </View>
+              <Text style={[styles.distanceText, { color: colors.tint }]}>
+                {distance < 1
+                  ? `${Math.round(distance * 1000)} م`
+                  : `${distance.toFixed(1)} كم`}
+              </Text>
             )}
           </View>
         </View>
-      </View>
-
-      <View style={styles.cardActions}>
-        <View
-          style={[
-            styles.ratingBadge,
-            { backgroundColor: colors.accent + "15" },
-          ]}
-        >
-          <Feather name="star" size={12} color={colors.accent} />
-          <Text style={[styles.ratingText, { color: colors.accent }]}>
-            {clinic.rating.toFixed(1)}
-          </Text>
-        </View>
-
-        {hasLocation && (
-          <Pressable
-            onPress={() =>
-              openDirections(clinic.latitude!, clinic.longitude!, clinic.name)
-            }
-            style={[styles.directionsBtn, { backgroundColor: colors.tint }]}
+        <View style={styles.listCardRight}>
+          <View
+            style={[
+              styles.ratingBadge,
+              { backgroundColor: colors.accent + "15" },
+            ]}
           >
-            <Feather name="navigation" size={14} color="#fff" />
-            <Text style={styles.directionsBtnText}>الاتجاهات</Text>
-          </Pressable>
-        )}
+            <Feather name="star" size={11} color={colors.accent} />
+            <Text style={[styles.ratingText, { color: colors.accent }]}>
+              {clinic.rating.toFixed(1)}
+            </Text>
+          </View>
+          {hasLocation && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                openDirections(
+                  clinic.latitude!,
+                  clinic.longitude!,
+                  clinic.name
+                );
+              }}
+              style={[styles.dirBtn, { backgroundColor: colors.tint }]}
+            >
+              <Feather name="navigation" size={12} color="#fff" />
+            </Pressable>
+          )}
+        </View>
       </View>
     </Pressable>
   );
@@ -161,6 +265,7 @@ export default function MapScreen() {
   const [locationPermission, setLocationPermission] = useState<
     "granted" | "denied" | "pending"
   >("pending");
+  const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -184,11 +289,24 @@ export default function MapScreen() {
     })();
   }, []);
 
-  const clinicsWithLocation = clinics.filter(
-    (c) => c.latitude != null && c.longitude != null
+  const activeClinics = clinics.filter(
+    (c) => c.verified && c.latitude != null && c.longitude != null
   );
 
-  const sortedClinics = [...clinics].sort((a, b) => {
+  const allActiveClinics = clinics.filter((c) => c.verified);
+
+  const getDistance = (clinic: Clinic): number | null => {
+    if (!userLocation || clinic.latitude == null || clinic.longitude == null)
+      return null;
+    return getDistanceKm(
+      userLocation.latitude,
+      userLocation.longitude,
+      clinic.latitude,
+      clinic.longitude
+    );
+  };
+
+  const sortedClinics = [...allActiveClinics].sort((a, b) => {
     if (!userLocation) return 0;
     const distA =
       a.latitude != null && a.longitude != null
@@ -211,20 +329,80 @@ export default function MapScreen() {
     return distA - distB;
   });
 
-  const getDistance = (clinic: Clinic): number | null => {
-    if (
-      !userLocation ||
-      clinic.latitude == null ||
-      clinic.longitude == null
-    )
-      return null;
-    return getDistanceKm(
-      userLocation.latitude,
-      userLocation.longitude,
-      clinic.latitude,
-      clinic.longitude
+  const mapCenter = userLocation ?? OMAN_CENTER;
+
+  if (clinicsLoading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={colors.tint} />
+        <Text style={[styles.loadingText, { color: colors.textMuted }]}>
+          جاري تحميل العيادات...
+        </Text>
+      </View>
     );
-  };
+  }
+
+  if (Platform.OS !== "web") {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ClinicMapView
+          clinics={activeClinics.map((c) => ({
+            id: String(c.id),
+            name: c.name,
+            specialty: c.specialty,
+            latitude: c.latitude!,
+            longitude: c.longitude!,
+          }))}
+          initialRegion={{
+            ...mapCenter,
+            ...INITIAL_DELTA,
+          }}
+          showsUserLocation={locationPermission === "granted"}
+          onMarkerPress={(clinicId: string) => {
+            const found = clinics.find((c) => String(c.id) === clinicId);
+            if (found) setSelectedClinic(found);
+          }}
+          tintColor={colors.tint}
+        />
+
+        {selectedClinic && (
+          <View style={styles.infoCardContainer}>
+            <ClinicInfoCard
+              clinic={selectedClinic}
+              distance={getDistance(selectedClinic)}
+              colors={colors}
+              onClose={() => setSelectedClinic(null)}
+            />
+          </View>
+        )}
+
+        <View
+          style={[
+            styles.mapHeader,
+            { paddingTop: topPad + 8, backgroundColor: "transparent" },
+          ]}
+        >
+          <View
+            style={[
+              styles.mapTitleBadge,
+              { backgroundColor: colors.backgroundCard },
+            ]}
+          >
+            <Feather name="map-pin" size={16} color={colors.tint} />
+            <Text style={[styles.mapTitleText, { color: colors.text }]}>
+              {activeClinics.length} عيادة
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -247,83 +425,63 @@ export default function MapScreen() {
         )}
       </View>
 
-      {clinicsLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.tint} />
-          <Text style={[styles.loadingText, { color: colors.textMuted }]}>
-            جاري تحميل العيادات...
-          </Text>
-        </View>
-      ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingBottom: 100,
-          }}
-        >
-          {locationPermission === "denied" && (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 100,
+        }}
+      >
+        {locationPermission === "denied" && (
+          <View
+            style={[
+              styles.permissionBanner,
+              { backgroundColor: colors.accent + "15" },
+            ]}
+          >
+            <Feather name="alert-circle" size={18} color={colors.accent} />
+            <Text
+              style={[styles.permissionText, { color: colors.textSecondary }]}
+            >
+              فعّل خدمة الموقع لعرض العيادات حسب القرب منك
+            </Text>
+          </View>
+        )}
+
+        {activeClinics.length > 0 && (
+          <View style={styles.statsRow}>
             <View
               style={[
-                styles.permissionBanner,
-                { backgroundColor: colors.accent + "15" },
+                styles.statBadge,
+                { backgroundColor: colors.tint + "15" },
               ]}
             >
-              <Feather name="alert-circle" size={18} color={colors.accent} />
-              <Text
-                style={[styles.permissionText, { color: colors.textSecondary }]}
-              >
-                فعّل خدمة الموقع لعرض العيادات حسب القرب منك
+              <Feather name="map-pin" size={14} color={colors.tint} />
+              <Text style={[styles.statText, { color: colors.tint }]}>
+                {activeClinics.length} عيادة على الخريطة
               </Text>
             </View>
-          )}
+          </View>
+        )}
 
-          {clinicsWithLocation.length > 0 && (
-            <View style={styles.statsRow}>
-              <View
-                style={[
-                  styles.statBadge,
-                  { backgroundColor: colors.tint + "15" },
-                ]}
-              >
-                <Feather name="map-pin" size={14} color={colors.tint} />
-                <Text style={[styles.statText, { color: colors.tint }]}>
-                  {clinicsWithLocation.length} عيادة على الخريطة
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.statBadge,
-                  { backgroundColor: colors.backgroundCard },
-                ]}
-              >
-                <Feather name="list" size={14} color={colors.textMuted} />
-                <Text style={[styles.statText, { color: colors.textMuted }]}>
-                  {clinics.length} إجمالي
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {sortedClinics.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Feather name="map" size={48} color={colors.textMuted} />
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                لا توجد عيادات مسجلة حالياً
-              </Text>
-            </View>
-          ) : (
-            sortedClinics.map((clinic) => (
-              <ClinicCard
-                key={clinic.id}
-                clinic={clinic}
-                distance={getDistance(clinic)}
-                colors={colors}
-              />
-            ))
-          )}
-        </ScrollView>
-      )}
+        {sortedClinics.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Feather name="map" size={48} color={colors.textMuted} />
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+              لا توجد عيادات مسجلة حالياً
+            </Text>
+          </View>
+        ) : (
+          sortedClinics.map((clinic) => (
+            <ClinicListCard
+              key={clinic.id}
+              clinic={clinic}
+              distance={getDistance(clinic)}
+              colors={colors}
+            />
+          ))
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -331,6 +489,11 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
   },
   header: {
     paddingHorizontal: 20,
@@ -352,15 +515,134 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_500Medium",
   },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
   loadingText: {
     fontSize: 15,
     fontFamily: "Inter_400Regular",
+  },
+  mapHeader: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    alignItems: "flex-end",
+  },
+  mapTitleBadge: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  mapTitleText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  infoCardContainer: {
+    position: "absolute",
+    bottom: 100,
+    left: 16,
+    right: 16,
+  },
+  infoCard: {
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  infoCardClose: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    zIndex: 1,
+    padding: 4,
+  },
+  infoCardContent: {},
+  infoCardRow: {
+    flexDirection: "row-reverse",
+    gap: 12,
+  },
+  infoCardAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoCardAvatarText: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+  },
+  infoCardDetails: {
+    flex: 1,
+    gap: 2,
+  },
+  infoCardName: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    textAlign: "right",
+  },
+  infoCardSpecialty: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+  },
+  infoCardMeta: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 4,
+  },
+  ratingBadge: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+  },
+  distanceText: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+  },
+  infoCardActions: {
+    flexDirection: "row-reverse",
+    gap: 10,
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.06)",
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  actionBtnText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  actionBtnTextWhite: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
   },
   permissionBanner: {
     flexDirection: "row-reverse",
@@ -393,99 +675,46 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_500Medium",
   },
-  clinicCard: {
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
+  listCard: {
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  cardRow: {
+  listCardRow: {
     flexDirection: "row-reverse",
+    alignItems: "center",
     gap: 12,
   },
-  cardAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardAvatarText: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
-  },
-  cardInfo: {
+  listCardInfo: {
     flex: 1,
     gap: 2,
   },
-  cardName: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-    textAlign: "right",
-  },
-  cardSpecialty: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
-  },
-  cardMeta: {
-    flexDirection: "row-reverse",
+  listCardRight: {
     alignItems: "center",
-    gap: 12,
-    marginTop: 4,
+    gap: 8,
   },
-  cardMetaItem: {
+  metaItem: {
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: 4,
     flexShrink: 1,
   },
-  cardMetaText: {
-    fontSize: 12,
+  metaText: {
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
     flexShrink: 1,
   },
-  cardDistance: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-  },
-  cardActions: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.06)",
-  },
-  ratingBadge: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  dirBtn: {
+    width: 32,
+    height: 32,
     borderRadius: 10,
-  },
-  ratingText: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
-  },
-  directionsBtn: {
-    flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  directionsBtnText: {
-    color: "#fff",
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    justifyContent: "center",
   },
   emptyContainer: {
     alignItems: "center",

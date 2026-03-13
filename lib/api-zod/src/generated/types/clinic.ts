@@ -23,6 +23,10 @@ export interface Clinic {
   totalPatients: number;
   pointsPerVisit: number;
   /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+  /** @nullable */
   description?: string | null;
   /** @nullable */
   descriptionAr?: string | null;
