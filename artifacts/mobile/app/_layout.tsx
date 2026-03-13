@@ -9,13 +9,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router, Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppContextProvider, useAppContext } from "@/context/AppContext";
+import { SplashLoader } from "@/components/SplashLoader";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,11 +39,7 @@ function AuthGate() {
   }, [isAuthenticated, authLoading, inAuthGroup]);
 
   if (authLoading) {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#F4F8FB" }}>
-        <ActivityIndicator size="large" color="#00C896" />
-      </View>
-    );
+    return <SplashLoader />;
   }
 
   return (
@@ -73,7 +69,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!fontsLoaded && !fontError) return <SplashLoader />;
 
   return (
     <SafeAreaProvider>
