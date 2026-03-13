@@ -4,8 +4,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import router from "./routes";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let currentDir: string;
+try {
+  currentDir = path.dirname(fileURLToPath(import.meta.url));
+} catch {
+  currentDir = __dirname;
+}
 
 const app: Express = express();
 
@@ -16,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 if (process.env.NODE_ENV === "production") {
-  const dashboardDist = path.resolve(__dirname, "../../clinic-dashboard/dist/public");
+  const dashboardDist = path.resolve(currentDir, "../../clinic-dashboard/dist/public");
   app.use("/dashboard", express.static(dashboardDist));
   app.get("/dashboard/*", (_req, res) => {
     res.sendFile(path.join(dashboardDist, "index.html"));
