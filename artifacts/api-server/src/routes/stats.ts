@@ -2,7 +2,12 @@ import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { clinicsTable, offersTable, appointmentsTable, patientsTable } from "@workspace/db";
 import { GetDashboardStatsResponse, GetPatientsResponse } from "@workspace/api-zod";
-import { eq, sql } from "drizzle-orm";
+
+function s(obj: Record<string, any>) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v instanceof Date ? v.toISOString() : v])
+  );
+}
 
 const router: IRouter = Router();
 
@@ -27,7 +32,7 @@ router.get("/stats", async (_req, res): Promise<void> => {
   const activeOffers = offers.filter(o => o.isActive).length;
   const revenueThisMonth = appointments
     .filter(a => a.date.startsWith(thisMonth) && a.status === "completed")
-    .reduce((_sum, _a) => _sum + 50, 0);
+    .length * 50;
 
   const levelDistribution = {
     bronze: patients.filter(p => p.level === "bronze").length,
@@ -36,25 +41,23 @@ router.get("/stats", async (_req, res): Promise<void> => {
     platinum: patients.filter(p => p.level === "platinum").length,
   };
 
-  const monthlyMap = new Map<string, number>();
+  const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  const monthlyMap = new Map<string, { label: string; count: number }>();
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const months = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-    monthlyMap.set(key, 0);
+    monthlyMap.set(key, { label: arabicMonths[d.getMonth()], count: 0 });
   }
   appointments.forEach(a => {
     const month = a.date.substring(0, 7);
-    if (monthlyMap.has(month)) {
-      monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + 1);
-    }
+    const entry = monthlyMap.get(month);
+    if (entry) entry.count++;
   });
 
-  const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-  const monthlyAppointments = Array.from(monthlyMap.entries()).map(([key, count]) => {
-    const [, m] = key.split("-");
-    return { month: arabicMonths[parseInt(m, 10) - 1] ?? m, count };
-  });
+  const monthlyAppointments = Array.from(monthlyMap.values()).map(({ label, count }) => ({
+    month: label,
+    count,
+  }));
 
   const stats = {
     totalPatients: patients.length,
@@ -74,7 +77,7 @@ router.get("/stats", async (_req, res): Promise<void> => {
 
 router.get("/patients", async (_req, res): Promise<void> => {
   const patients = await db.select().from(patientsTable).orderBy(patientsTable.joinedAt);
-  res.json(GetPatientsResponse.parse(patients));
+  res.json(GetPatientsResponse.parse(patients.map(s)));
 });
 
 export default router;

@@ -11,13 +11,19 @@ import {
   DeleteOfferParams,
 } from "@workspace/api-zod";
 
+function s(obj: Record<string, any>) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v instanceof Date ? v.toISOString() : v])
+  );
+}
+
 const router: IRouter = Router();
 
 router.get("/offers", async (_req, res): Promise<void> => {
   const offers = await db.select().from(offersTable).orderBy(offersTable.createdAt);
   const clinics = await db.select().from(clinicsTable);
   const clinicMap = new Map(clinics.map(c => [c.id, c.nameAr]));
-  const withClinicName = offers.map(o => ({ ...o, clinicName: clinicMap.get(o.clinicId) ?? "" }));
+  const withClinicName = offers.map(o => ({ ...s(o), clinicName: clinicMap.get(o.clinicId) ?? "" }));
   res.json(GetOffersResponse.parse(withClinicName));
 });
 
@@ -30,7 +36,7 @@ router.post("/offers", async (req, res): Promise<void> => {
   const [offer] = await db.insert(offersTable).values(parsed.data).returning();
   const clinics = await db.select().from(clinicsTable).where(eq(clinicsTable.id, offer.clinicId));
   const clinicName = clinics[0]?.nameAr ?? "";
-  res.status(201).json({ ...offer, clinicName });
+  res.status(201).json({ ...s(offer), clinicName });
 });
 
 router.patch("/offers/:id", async (req, res): Promise<void> => {
@@ -55,7 +61,7 @@ router.patch("/offers/:id", async (req, res): Promise<void> => {
   }
   const clinics = await db.select().from(clinicsTable).where(eq(clinicsTable.id, offer.clinicId));
   const clinicName = clinics[0]?.nameAr ?? "";
-  res.json(UpdateOfferResponse.parse({ ...offer, clinicName }));
+  res.json(UpdateOfferResponse.parse({ ...s(offer), clinicName }));
 });
 
 router.delete("/offers/:id", async (req, res): Promise<void> => {

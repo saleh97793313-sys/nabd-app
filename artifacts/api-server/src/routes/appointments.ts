@@ -9,11 +9,17 @@ import {
   UpdateAppointmentStatusResponse,
 } from "@workspace/api-zod";
 
+function s(obj: Record<string, any>) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v instanceof Date ? v.toISOString() : v])
+  );
+}
+
 const router: IRouter = Router();
 
 router.get("/appointments", async (_req, res): Promise<void> => {
   const appointments = await db.select().from(appointmentsTable).orderBy(appointmentsTable.createdAt);
-  res.json(GetAppointmentsResponse.parse(appointments));
+  res.json(GetAppointmentsResponse.parse(appointments.map(s)));
 });
 
 router.patch("/appointments/:id", async (req, res): Promise<void> => {
@@ -36,7 +42,7 @@ router.patch("/appointments/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Appointment not found" });
     return;
   }
-  res.json(UpdateAppointmentStatusResponse.parse(appointment));
+  res.json(UpdateAppointmentStatusResponse.parse(s(appointment)));
 });
 
 export default router;

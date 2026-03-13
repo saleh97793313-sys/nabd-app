@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
+  ActivityIndicator,
   Image,
   Platform,
   Pressable,
@@ -31,7 +32,7 @@ export default function HomeScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { patient, offers, clinics, discounts, unreadCount, markDiscountUsed } = useAppContext();
+  const { patient, offers, clinics, clinicsLoading, discounts, unreadCount, markDiscountUsed } = useAppContext();
 
   const featuredOffers = offers.filter((o) => o.isFeatured).slice(0, 3);
   const topClinics = clinics.slice(0, 3);
@@ -184,14 +185,20 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {topClinics.map((clinic) => (
-          <ClinicCard
-            key={clinic.id}
-            clinic={clinic}
-            colors={colors}
-            onPress={() => router.push(`/clinic/${clinic.id}`)}
-          />
-        ))}
+        {clinicsLoading ? (
+          <View style={{ padding: 24, alignItems: "center" }}>
+            <ActivityIndicator size="small" color={colors.tint} />
+          </View>
+        ) : (
+          topClinics.map((clinic) => (
+            <ClinicCard
+              key={clinic.id}
+              clinic={clinic}
+              colors={colors}
+              onPress={() => router.push(`/clinic/${clinic.id}`)}
+            />
+          ))
+        )}
       </ScrollView>
     </View>
   );

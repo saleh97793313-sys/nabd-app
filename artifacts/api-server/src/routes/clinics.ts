@@ -16,11 +16,17 @@ import {
 } from "@workspace/api-zod";
 import { offersTable } from "@workspace/db";
 
+function serializeDates(obj: Record<string, any>) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v instanceof Date ? v.toISOString() : v])
+  );
+}
+
 const router: IRouter = Router();
 
 router.get("/clinics", async (_req, res): Promise<void> => {
   const clinics = await db.select().from(clinicsTable).orderBy(clinicsTable.createdAt);
-  res.json(GetClinicsResponse.parse(clinics));
+  res.json(GetClinicsResponse.parse(clinics.map(serializeDates)));
 });
 
 router.post("/clinics", async (req, res): Promise<void> => {
@@ -30,7 +36,7 @@ router.post("/clinics", async (req, res): Promise<void> => {
     return;
   }
   const [clinic] = await db.insert(clinicsTable).values(parsed.data).returning();
-  res.status(201).json(GetClinicResponse.parse(clinic));
+  res.status(201).json(GetClinicResponse.parse(serializeDates(clinic)));
 });
 
 router.get("/clinics/:id", async (req, res): Promise<void> => {
@@ -44,7 +50,7 @@ router.get("/clinics/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Clinic not found" });
     return;
   }
-  res.json(GetClinicResponse.parse(clinic));
+  res.json(GetClinicResponse.parse(serializeDates(clinic)));
 });
 
 router.patch("/clinics/:id", async (req, res): Promise<void> => {
@@ -67,7 +73,7 @@ router.patch("/clinics/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Clinic not found" });
     return;
   }
-  res.json(UpdateClinicResponse.parse(clinic));
+  res.json(UpdateClinicResponse.parse(serializeDates(clinic)));
 });
 
 router.delete("/clinics/:id", async (req, res): Promise<void> => {
@@ -89,7 +95,7 @@ router.get("/clinics/:id/offers", async (req, res): Promise<void> => {
   const clinics = await db.select().from(clinicsTable).where(eq(clinicsTable.id, params.data.id));
   const clinic = clinics[0];
   const offers = await db.select().from(offersTable).where(eq(offersTable.clinicId, params.data.id));
-  const withClinicName = offers.map(o => ({ ...o, clinicName: clinic?.nameAr ?? "" }));
+  const withClinicName = offers.map(o => ({ ...serializeDates(o), clinicName: clinic?.nameAr ?? "" }));
   res.json(GetClinicOffersResponse.parse(withClinicName));
 });
 

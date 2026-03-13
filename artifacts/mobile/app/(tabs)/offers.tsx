@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Platform,
   Pressable,
@@ -24,7 +25,7 @@ export default function OffersScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { offers } = useAppContext();
+  const { offers, offersLoading } = useAppContext();
   const [selectedCategory, setSelectedCategory] = useState("الكل");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -115,30 +116,39 @@ export default function OffersScreen() {
         />
       </View>
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: Platform.OS === "web" ? 100 : 100 },
-        ]}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <OfferCard
-            offer={item}
-            colors={colors}
-            onPress={() => router.push(`/offer/${item.id}`)}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Feather name="tag" size={48} color={colors.textMuted} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              لا توجد عروض في هذه الفئة
-            </Text>
-          </View>
-        }
-      />
+      {offersLoading ? (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color={colors.tint} />
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            جاري تحميل العروض...
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: Platform.OS === "web" ? 100 : 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <OfferCard
+              offer={item}
+              colors={colors}
+              onPress={() => router.push(`/offer/${item.id}`)}
+            />
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Feather name="tag" size={48} color={colors.textMuted} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                لا توجد عروض في هذه الفئة
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
