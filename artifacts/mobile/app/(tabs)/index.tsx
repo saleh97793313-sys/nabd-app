@@ -31,10 +31,13 @@ export default function HomeScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { patient, offers, clinics, unreadCount } = useAppContext();
+  const { patient, offers, clinics, discounts, unreadCount, markDiscountUsed } = useAppContext();
 
   const featuredOffers = offers.filter((o) => o.isFeatured).slice(0, 3);
   const topClinics = clinics.slice(0, 3);
+  const availableDiscounts = discounts.filter(
+    (d) => !d.isUsed && canUseDiscount(patient.level, d.requiredLevel)
+  ).slice(0, 2);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
 
@@ -113,6 +116,33 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
+
+        {/* My Discounts */}
+        {availableDiscounts.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                خصوماتي الحصرية
+              </Text>
+              <Pressable onPress={() => router.push("/discounts")}>
+                <Text style={[styles.seeAll, { color: colors.tint }]}>
+                  عرض الكل
+                </Text>
+              </Pressable>
+            </View>
+            <View style={styles.discountsSection}>
+              {availableDiscounts.map((d) => (
+                <DiscountCard
+                  key={d.id}
+                  discount={d}
+                  colors={colors}
+                  canUse={true}
+                  onUse={() => markDiscountUsed(d.id)}
+                />
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Featured Offers */}
         <View style={styles.sectionHeader}>
@@ -269,6 +299,11 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     paddingHorizontal: 20,
     paddingBottom: 4,
+    gap: 12,
+    marginBottom: 24,
+  },
+  discountsSection: {
+    paddingHorizontal: 20,
     gap: 12,
     marginBottom: 24,
   },
