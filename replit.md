@@ -124,7 +124,11 @@ Config file: `railway.toml` at project root.
    - `NODE_ENV` — set to `production`
    - `SESSION_SECRET` — any random string
 4. Railway auto-detects `railway.toml` and builds/deploys
-5. Copy the Railway URL and set it as `EXPO_PUBLIC_API_URL` in `artifacts/mobile/.env`
+5. Copy the Railway URL and create `artifacts/mobile/.env`:
+   ```
+   EXPO_PUBLIC_API_URL=https://YOUR-RAILWAY-HOST.up.railway.app/api
+   ```
+   **Important:** The URL must end with `/api` — without it, mobile API calls will fail. See `artifacts/mobile/.env.example` for reference.
 
 ### Replit Deploy
 
