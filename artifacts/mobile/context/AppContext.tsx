@@ -102,6 +102,8 @@ const LEVEL_COLORS: Record<string, string> = {
   platinum: "#7C3AED",
 };
 
+const AUTH_STORAGE_KEY = "@healthpoints_auth";
+
 const MOCK_APPOINTMENTS: Appointment[] = [
   {
     id: "a1",
@@ -162,18 +164,11 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   },
 ];
 
-const MOCK_PATIENT: Patient = {
-  id: "p1",
-  name: "محمد بن علي الراشدي",
-  phone: "+968 9876 5432",
-  points: 1350,
-  totalVisits: 8,
-  level: "silver",
-  joinDate: "2025-09-01",
-  conditions: ["ضغط الدم", "متابعة دورية"],
-};
+type AuthResult = { success: true } | { success: false; error: string };
 
 type AppContextType = {
+  isAuthenticated: boolean;
+  authLoading: boolean;
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
   patient: Patient;
@@ -194,12 +189,43 @@ type AppContextType = {
   refreshClinics: () => void;
   refreshOffers: () => void;
   refreshDiscounts: () => void;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (name: string, email: string, phone: string, password: string) => Promise<AuthResult>;
+  logout: () => void;
 };
+
+const DEFAULT_PATIENT: Patient = {
+  id: "",
+  name: "",
+  phone: "",
+  points: 0,
+  totalVisits: 0,
+  level: "bronze",
+  joinDate: new Date().toISOString().split("T")[0],
+  conditions: [],
+};
+
+function mapPatientFromApi(data: any): Patient {
+  return {
+    id: String(data.id),
+    name: data.name,
+    phone: data.phone,
+    points: data.points ?? 0,
+    totalVisits: data.totalVisits ?? 0,
+    level: (data.level as Patient["level"]) ?? "bronze",
+    joinDate: data.joinedAt
+      ? new Date(data.joinedAt).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0],
+    conditions: [],
+  };
+}
 
 const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
   () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authLoading, setAuthLoading] = useState(true);
     const [userRole, setUserRole] = useState<UserRole>("patient");
-    const [patient, setPatient] = useState<Patient>(MOCK_PATIENT);
+    const [patient, setPatient] = useState<Patient>(DEFAULT_PATIENT);
     const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
     const [discountsUsed, setDiscountsUsed] = useState<Set<string>>(new Set());
 
@@ -211,6 +237,23 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
 
     const [apiDiscounts, setApiDiscounts] = useState<Discount[]>([]);
     const [discountsLoading, setDiscountsLoading] = useState(true);
+
+    useEffect(() => {
+      const restoreAuth = async () => {
+        try {
+          const stored = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+          if (stored) {
+            const data = JSON.parse(stored);
+            setPatient(data);
+            setIsAuthenticated(true);
+          }
+        } catch {
+        } finally {
+          setAuthLoading(false);
+        }
+      };
+      restoreAuth();
+    }, []);
 
     const fetchClinics = async () => {
       try {
@@ -316,6 +359,60 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       isUsed: discountsUsed.has(d.id),
     }));
 
+    const login = async (email: string, password: string): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${getApiBase()}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          return { success: false, error: data.error || "خطأ في تسجيل الدخول" };
+        }
+        const mappedPatient = mapPatientFromApi(data);
+        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
+        setPatient(mappedPatient);
+        setIsAuthenticated(true);
+        return { success: true };
+      } catch {
+        return { success: false, error: "خطأ في الاتصال بالخادم" };
+      }
+    };
+
+    const register = async (
+      name: string,
+      email: string,
+      phone: string,
+      password: string
+    ): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${getApiBase()}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, phone, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          return { success: false, error: data.error || "خطأ في التسجيل" };
+        }
+        const mappedPatient = mapPatientFromApi(data);
+        mappedPatient.points = 100;
+        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
+        setPatient(mappedPatient);
+        setIsAuthenticated(true);
+        return { success: true };
+      } catch {
+        return { success: false, error: "خطأ في الاتصال بالخادم" };
+      }
+    };
+
+    const logout = async () => {
+      await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      setIsAuthenticated(false);
+      setPatient(DEFAULT_PATIENT);
+    };
+
     const markNotificationRead = (id: string) => {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
@@ -347,6 +444,8 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
     const unreadCount = notifications.filter((n) => !n.isRead).length;
 
     return {
+      isAuthenticated,
+      authLoading,
       userRole,
       setUserRole,
       patient,
@@ -367,6 +466,9 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       refreshClinics: fetchClinics,
       refreshOffers: fetchOffers,
       refreshDiscounts: fetchDiscounts,
+      login,
+      register,
+      logout,
     };
   }
 );

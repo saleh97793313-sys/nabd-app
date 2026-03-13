@@ -1,6 +1,8 @@
 import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
 import {
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -37,7 +39,21 @@ export default function ProfileScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { patient } = useAppContext();
+  const { patient, logout } = useAppContext();
+
+  const handleLogout = () => {
+    Alert.alert("تسجيل الخروج", "هل أنت متأكد من الخروج؟", [
+      { text: "إلغاء", style: "cancel" },
+      {
+        text: "خروج",
+        style: "destructive",
+        onPress: () => {
+          logout();
+          router.replace("/auth/login");
+        },
+      },
+    ]);
+  };
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : insets.bottom;
@@ -197,6 +213,18 @@ export default function ProfileScreen() {
       <Text style={[styles.memberSince, { color: colors.textMuted }]}>
         عضو منذ {patient.joinDate}
       </Text>
+
+      {/* Logout */}
+      <Pressable
+        onPress={handleLogout}
+        style={({ pressed }) => [
+          styles.logoutBtn,
+          { borderColor: colors.danger + "40", opacity: pressed ? 0.7 : 1 },
+        ]}
+      >
+        <Feather name="log-out" size={18} color={colors.danger} />
+        <Text style={[styles.logoutText, { color: colors.danger }]}>تسجيل الخروج</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -355,6 +383,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     fontFamily: "Inter_400Regular",
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  logoutBtn: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginHorizontal: 24,
+    marginBottom: 12,
+    paddingVertical: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
+  logoutText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
   },
 });

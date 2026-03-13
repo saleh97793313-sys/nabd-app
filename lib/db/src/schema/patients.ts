@@ -7,6 +7,7 @@ export const patientsTable = pgTable("patients", {
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email").notNull(),
+  passwordHash: text("password_hash"),
   level: text("level").notNull().default("bronze"),
   points: integer("points").notNull().default(0),
   totalVisits: integer("total_visits").notNull().default(0),
