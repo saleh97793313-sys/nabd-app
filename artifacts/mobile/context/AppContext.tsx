@@ -166,8 +166,20 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 
 type AuthResult = { success: true } | { success: false; error: string };
 
+const GUEST_PATIENT: Patient = {
+  id: "guest",
+  name: "زائر",
+  phone: "",
+  points: 0,
+  totalVisits: 0,
+  level: "bronze",
+  joinDate: new Date().toISOString().split("T")[0],
+  conditions: [],
+};
+
 type AppContextType = {
   isAuthenticated: boolean;
+  isGuest: boolean;
   authLoading: boolean;
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
@@ -192,6 +204,7 @@ type AppContextType = {
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (name: string, email: string, phone: string, password: string) => Promise<AuthResult>;
   logout: () => void;
+  enterAsGuest: () => void;
 };
 
 const DEFAULT_PATIENT: Patient = {
@@ -223,6 +236,7 @@ function mapPatientFromApi(data: any): Patient {
 const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
   () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isGuest, setIsGuest] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
     const [userRole, setUserRole] = useState<UserRole>("patient");
     const [patient, setPatient] = useState<Patient>(DEFAULT_PATIENT);
@@ -410,7 +424,14 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
     const logout = async () => {
       await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
       setIsAuthenticated(false);
+      setIsGuest(false);
       setPatient(DEFAULT_PATIENT);
+    };
+
+    const enterAsGuest = () => {
+      setPatient(GUEST_PATIENT);
+      setIsGuest(true);
+      setIsAuthenticated(true);
     };
 
     const markNotificationRead = (id: string) => {
@@ -445,6 +466,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
 
     return {
       isAuthenticated,
+      isGuest,
       authLoading,
       userRole,
       setUserRole,
@@ -469,6 +491,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       login,
       register,
       logout,
+      enterAsGuest,
     };
   }
 );

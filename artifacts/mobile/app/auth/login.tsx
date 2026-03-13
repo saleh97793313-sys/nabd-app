@@ -24,7 +24,12 @@ export default function LoginScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { login } = useAppContext();
+  const { login, enterAsGuest } = useAppContext();
+
+  const handleGuest = () => {
+    enterAsGuest();
+    router.replace("/(tabs)");
+  };
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -152,6 +157,16 @@ export default function LoginScreen() {
             <Text style={[styles.footerLink, { color: colors.tint }]}>سجّل الآن</Text>
           </Pressable>
         </View>
+
+        <Pressable
+          onPress={handleGuest}
+          style={({ pressed }) => [styles.guestBtn, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Feather name="eye" size={16} color={colors.textMuted} />
+          <Text style={[styles.guestText, { color: colors.textMuted }]}>
+            تصفح كضيف بدون تسجيل دخول
+          </Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -273,5 +288,18 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: 14,
     fontFamily: "Inter_700Bold",
+  },
+  guestBtn: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    marginTop: 4,
+  },
+  guestText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    textDecorationLine: "underline",
   },
 });
