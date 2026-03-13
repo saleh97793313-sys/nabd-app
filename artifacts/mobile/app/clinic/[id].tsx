@@ -1,0 +1,250 @@
+import { Feather } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import React from "react";
+import {
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import Colors from "@/constants/colors";
+import { useAppContext } from "@/context/AppContext";
+import { OfferCard } from "@/components/OfferCard";
+
+export default function ClinicDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const colors = isDark ? Colors.dark : Colors.light;
+  const insets = useSafeAreaInsets();
+  const { clinics, offers } = useAppContext();
+
+  const clinic = clinics.find((c) => c.id === id);
+  if (!clinic) return null;
+
+  const clinicOffers = offers.filter((o) => o.clinicId === id);
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+
+  const initials = clinic.name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+        <Pressable
+          onPress={() => router.back()}
+          style={[styles.backBtn, { backgroundColor: colors.backgroundCard }]}
+        >
+          <Feather name="chevron-right" size={22} color={colors.text} />
+        </Pressable>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          العيادة
+        </Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: Platform.OS === "web" ? 100 : 100,
+        }}
+      >
+        {/* Clinic Hero */}
+        <View style={styles.clinicHero}>
+          <View style={[styles.heroAvatar, { backgroundColor: colors.tint + "15" }]}>
+            <Text style={[styles.heroAvatarText, { color: colors.tint }]}>
+              {initials}
+            </Text>
+          </View>
+
+          <View style={styles.heroInfo}>
+            <View style={styles.nameRow}>
+              <Text style={[styles.clinicName, { color: colors.text }]}>
+                {clinic.name}
+              </Text>
+              {clinic.verified && (
+                <Feather name="check-circle" size={18} color={colors.tint} />
+              )}
+            </View>
+            <Text style={[styles.specialty, { color: colors.textSecondary }]}>
+              {clinic.specialty}
+            </Text>
+          </View>
+
+          <View style={styles.heroStats}>
+            <View style={[styles.ratingBig, { backgroundColor: colors.accent + "15" }]}>
+              <Feather name="star" size={16} color={colors.accent} />
+              <Text style={[styles.ratingNumber, { color: colors.accent }]}>
+                {clinic.rating}
+              </Text>
+            </View>
+            <Text style={[styles.ratingLabel, { color: colors.textMuted }]}>
+              {clinic.totalPatients.toLocaleString()}+ مريض
+            </Text>
+          </View>
+        </View>
+
+        {/* Contact */}
+        <View
+          style={[styles.contactCard, { backgroundColor: colors.backgroundCard }]}
+        >
+          <Pressable
+            style={styles.contactItem}
+            onPress={() => Linking.openURL(`tel:${clinic.phone}`)}
+          >
+            <Feather name="phone" size={18} color={colors.tint} />
+            <Text style={[styles.contactText, { color: colors.text }]}>
+              {clinic.phone}
+            </Text>
+          </Pressable>
+          <View style={[styles.contactDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.contactItem}>
+            <Feather name="map-pin" size={18} color={colors.tint} />
+            <Text style={[styles.contactText, { color: colors.text }]}>
+              {clinic.address}
+            </Text>
+          </View>
+        </View>
+
+        {/* Offers */}
+        {clinicOffers.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              عروض هذه العيادة
+            </Text>
+            {clinicOffers.map((offer) => (
+              <View key={offer.id} style={{ paddingHorizontal: 20, marginBottom: 10 }}>
+                <OfferCard
+                  offer={offer}
+                  colors={colors}
+                  onPress={() => router.push(`/offer/${offer.id}`)}
+                />
+              </View>
+            ))}
+          </>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  header: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontFamily: "Inter_600SemiBold",
+  },
+  clinicHero: {
+    padding: 20,
+    gap: 16,
+  },
+  heroAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-end",
+  },
+  heroAvatarText: {
+    fontSize: 28,
+    fontFamily: "Inter_700Bold",
+  },
+  heroInfo: {
+    gap: 4,
+    alignItems: "flex-end",
+  },
+  nameRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 6,
+  },
+  clinicName: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    textAlign: "right",
+  },
+  specialty: {
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+  },
+  heroStats: {
+    alignItems: "flex-end",
+    gap: 6,
+  },
+  ratingBig: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  ratingNumber: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+  },
+  ratingLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+  },
+  contactCard: {
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 6,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  contactItem: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+  },
+  contactText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+    flex: 1,
+  },
+  contactDivider: {
+    height: 1,
+    marginHorizontal: 14,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    textAlign: "right",
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+});
