@@ -101,7 +101,7 @@ export default function SettingsPage() {
         <Section title="معلومات الملف الشخصي" icon={User}>
           <div className="space-y-4">
             <InputRow label="الاسم الكامل" value={name} onChange={setName} placeholder="مالك التطبيق" />
-            <InputRow label="البريد الإلكتروني" value={email} onChange={setEmail} placeholder="owner@nabd.om" dir="ltr" type="email" />
+            <InputRow label="البريد الإلكتروني" value={email} onChange={setEmail} placeholder="Saleh97793313@gmail.com" dir="ltr" type="email" />
             <button
               onClick={saveProfile}
               className={clsx(

@@ -4,7 +4,7 @@ import { useDashboardAuth } from "@/context/DashboardAuth";
 
 export default function LoginPage() {
   const { login } = useDashboardAuth();
-  const [email, setEmail] = useState("owner@nabd.om");
+  const [email, setEmail] = useState("Saleh97793313@gmail.com");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
@@ -63,7 +63,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="owner@nabd.om"
+                  placeholder="Saleh97793313@gmail.com"
                   className="w-full bg-muted/50 border border-border rounded-xl py-3 pe-10 ps-4 text-right placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
                   dir="ltr"
                 />

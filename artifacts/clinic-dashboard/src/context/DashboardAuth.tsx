@@ -21,7 +21,7 @@ const CREDS_KEY = "nabd_dashboard_creds";
 
 const DEFAULT_OWNER: OwnerProfile = {
   name: "مالك التطبيق",
-  email: "owner@nabd.om",
+  email: "Saleh97793313@gmail.com",
   role: "owner",
   avatar: "م",
 };
@@ -35,6 +35,16 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   const [owner, setOwner] = useState<OwnerProfile | null>(null);
 
   useEffect(() => {
+    const savedCreds = localStorage.getItem(CREDS_KEY);
+    if (savedCreds) {
+      try {
+        const parsed = JSON.parse(savedCreds);
+        if (parsed.email === "owner@nabd.om") {
+          localStorage.removeItem(CREDS_KEY);
+          localStorage.removeItem(OWNER_SESSION_KEY);
+        }
+      } catch {}
+    }
     const session = localStorage.getItem(OWNER_SESSION_KEY);
     if (session) {
       try {
