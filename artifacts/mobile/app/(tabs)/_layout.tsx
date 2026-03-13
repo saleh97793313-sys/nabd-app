@@ -23,6 +23,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "tag", selected: "tag.fill" }} />
         <Label>العروض</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="map">
+        <Icon sf={{ default: "map", selected: "map.fill" }} />
+        <Label>الخريطة</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="appointments">
         <Icon sf={{ default: "calendar", selected: "calendar.fill" }} />
         <Label>مواعيدي</Label>
@@ -111,6 +115,22 @@ function ClassicTabLayout() {
                 <SymbolView name="tag.fill" tintColor={color} size={24} />
               ) : (
                 <Feather name="tag" size={24} color={color} />
+              )}
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="map"
+        options={{
+          title: "الخريطة",
+          tabBarIcon: ({ color, focused }) => (
+            <View style={styles.iconContainer}>
+              {focused && <View style={[styles.activeDot, { backgroundColor: colors.tint }]} />}
+              {isIOS ? (
+                <SymbolView name="map.fill" tintColor={color} size={24} />
+              ) : (
+                <Feather name="map-pin" size={24} color={color} />
               )}
             </View>
           ),

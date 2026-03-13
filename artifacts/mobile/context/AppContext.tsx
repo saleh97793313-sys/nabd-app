@@ -30,6 +30,8 @@ export type Clinic = {
   email?: string;
   openHours?: string;
   descriptionAr?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export type Offer = {
@@ -296,6 +298,8 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
           offerCount: 0,
           verified: c.isActive ?? true,
           image: c.imageUrl,
+          latitude: c.latitude ?? null,
+          longitude: c.longitude ?? null,
         }));
         setClinics(mapped);
       } catch (e) {

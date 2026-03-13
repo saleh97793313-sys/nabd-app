@@ -99,6 +99,10 @@ Utility scripts package. Each script is a `.ts` file in `src/` with a correspond
 
 Expo React Native mobile app for patients. Connects to the API via `EXPO_PUBLIC_API_URL` env variable or falls back to `EXPO_PUBLIC_DOMAIN`.
 
+- Tabs: الرئيسية (Home), العروض (Offers), الخريطة (Map), مواعيدي (Appointments), حسابي (Profile)
+- Map tab uses `expo-location` for user positioning and shows clinics sorted by distance
+- Clinics with lat/lng show distance and a "الاتجاهات" (Directions) button
+
 - Set `EXPO_PUBLIC_API_URL` in `artifacts/mobile/.env` to point to the production API (e.g. `https://your-api.up.railway.app/api`)
 - In development, `EXPO_PUBLIC_DOMAIN` is set automatically to the Replit dev domain
 
@@ -108,7 +112,7 @@ React + Vite admin dashboard for clinics. Built with Tailwind CSS.
 
 - Build requires `BASE_PATH=/dashboard/` and `PORT=3000`
 - In production, served as static files by the API server at `/dashboard`
-- Default login: `owner@nabd.om` / `nabd@2026`
+- Default login: `Saleh97793313@gmail.com` / `nabd@2026`
 
 ## Deployment
 
@@ -134,6 +138,6 @@ Config file: `railway.toml` at project root.
 
 Config is in `.replit` under `[deployment]`. Requires Replit Core plan.
 
-- Build: `pnpm --filter @workspace/db run push && BASE_PATH=/dashboard/ PORT=3000 pnpm --filter @workspace/clinic-dashboard run build && pnpm --filter @workspace/api-server run build`
+- Build: `BASE_PATH=/dashboard/ PORT=3000 pnpm --filter @workspace/clinic-dashboard run build && pnpm --filter @workspace/api-server run build`
 - Run: `node artifacts/api-server/dist/index.cjs`
 - Dashboard at `/dashboard`, API at `/api`

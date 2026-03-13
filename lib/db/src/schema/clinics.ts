@@ -18,6 +18,8 @@ export const clinicsTable = pgTable("clinics", {
   isActive: boolean("is_active").notNull().default(true),
   totalPatients: integer("total_patients").notNull().default(0),
   pointsPerVisit: integer("points_per_visit").notNull().default(100),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
   description: text("description"),
   descriptionAr: text("description_ar"),
   imageUrl: text("image_url"),

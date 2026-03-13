@@ -32,6 +32,8 @@ const clinicSchema = z.object({
   city: z.string().min(1, "مطلوب"),
   openHours: z.string().min(1, "مطلوب"),
   pointsPerVisit: z.coerce.number().min(0),
+  latitude: z.coerce.number().optional().nullable(),
+  longitude: z.coerce.number().optional().nullable(),
   description: z.string().optional().nullable(),
   descriptionAr: z.string().optional().nullable(),
   imageUrl: z.string().optional().nullable(),
@@ -58,6 +60,8 @@ export default function ClinicsPage() {
       setEditingClinic(clinic);
       reset({
         ...clinic,
+        latitude: clinic.latitude ?? null,
+        longitude: clinic.longitude ?? null,
         description: clinic.description || "",
         descriptionAr: clinic.descriptionAr || "",
         imageUrl: clinic.imageUrl || "",
@@ -67,6 +71,7 @@ export default function ClinicsPage() {
       reset({
         name: "", nameAr: "", specialty: "", specialtyAr: "", phone: "", email: "", 
         address: "", addressAr: "", city: "", openHours: "", pointsPerVisit: 100,
+        latitude: null, longitude: null,
         description: "", descriptionAr: "", imageUrl: ""
       });
     }
@@ -237,6 +242,15 @@ export default function ClinicsPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-foreground">النقاط المكتسبة لكل زيارة</label>
                   <input {...register("pointsPerVisit")} type="number" dir="ltr" className="w-full p-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-foreground">خط العرض (Latitude)</label>
+                  <input {...register("latitude")} type="number" step="any" dir="ltr" placeholder="مثال: 23.5880" className="w-full p-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-foreground">خط الطول (Longitude)</label>
+                  <input {...register("longitude")} type="number" step="any" dir="ltr" placeholder="مثال: 58.3829" className="w-full p-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" />
                 </div>
               </div>
 
