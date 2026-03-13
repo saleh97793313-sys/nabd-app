@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @workspace/db run push && BASE_PATH=/dashboard/ PORT=3000 pnpm --filter @workspace/clinic-dashboard run build && pnpm --filter @workspace/api-server run build"
+
+[deploy]
+startCommand = "node artifacts/api-server/dist/index.cjs"
+healthcheckPath = "/api/healthz"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

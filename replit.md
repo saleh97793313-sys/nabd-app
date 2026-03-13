@@ -94,3 +94,42 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+### `artifacts/mobile` (`@workspace/mobile`)
+
+Expo React Native mobile app for patients. Connects to the API via `EXPO_PUBLIC_API_URL` env variable or falls back to `EXPO_PUBLIC_DOMAIN`.
+
+- Set `EXPO_PUBLIC_API_URL` in `artifacts/mobile/.env` to point to the production API (e.g. `https://your-api.up.railway.app/api`)
+- In development, `EXPO_PUBLIC_DOMAIN` is set automatically to the Replit dev domain
+
+### `artifacts/clinic-dashboard` (`@workspace/clinic-dashboard`)
+
+React + Vite admin dashboard for clinics. Built with Tailwind CSS.
+
+- Build requires `BASE_PATH=/dashboard/` and `PORT=3000`
+- In production, served as static files by the API server at `/dashboard`
+- Default login: `owner@nabd.om` / `nabd@2026`
+
+## Deployment
+
+### Railway (recommended for 24/7 API)
+
+Config file: `railway.toml` at project root.
+
+1. Create account at [railway.app](https://railway.app)
+2. New Project > Deploy from GitHub repo (or use Railway CLI)
+3. Add environment variables:
+   - `DATABASE_URL` — copy from Replit Secrets (Database tab)
+   - `PORT` — Railway sets this automatically
+   - `NODE_ENV` — set to `production`
+   - `SESSION_SECRET` — any random string
+4. Railway auto-detects `railway.toml` and builds/deploys
+5. Copy the Railway URL and set it as `EXPO_PUBLIC_API_URL` in `artifacts/mobile/.env`
+
+### Replit Deploy
+
+Config is in `.replit` under `[deployment]`. Requires Replit Core plan.
+
+- Build: `pnpm --filter @workspace/db run push && BASE_PATH=/dashboard/ PORT=3000 pnpm --filter @workspace/clinic-dashboard run build && pnpm --filter @workspace/api-server run build`
+- Run: `node artifacts/api-server/dist/index.cjs`
+- Dashboard at `/dashboard`, API at `/api`

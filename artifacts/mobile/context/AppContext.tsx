@@ -85,6 +85,10 @@ export type Discount = {
 };
 
 function getApiBase(): string {
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (apiUrl) {
+    return apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
+  }
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   if (Platform.OS === "web") {
     return "/api";
