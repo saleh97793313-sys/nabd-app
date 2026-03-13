@@ -195,7 +195,7 @@ type AppContextType = {
   discountsLoading: boolean;
   unreadCount: number;
   markNotificationRead: (id: string) => void;
-  bookAppointment: (clinicId: string) => void;
+  bookAppointment: (clinicId: string, details?: { service: string; serviceAr: string; date: string; time: string; notes?: string }) => void;
   redeemOffer: (offerId: string) => void;
   markDiscountUsed: (id: string) => void;
   refreshClinics: () => void;
@@ -251,6 +251,9 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
 
     const [apiDiscounts, setApiDiscounts] = useState<Discount[]>([]);
     const [discountsLoading, setDiscountsLoading] = useState(true);
+
+    const [apiAppointments, setApiAppointments] = useState<Appointment[]>([]);
+    const [appointmentsLoading, setAppointmentsLoading] = useState(false);
 
     useEffect(() => {
       const restoreAuth = async () => {
@@ -362,6 +365,32 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       }
     };
 
+    const fetchAppointments = async (phone: string) => {
+      if (!phone) return;
+      try {
+        setAppointmentsLoading(true);
+        const res = await fetch(`${getApiBase()}/appointments/patient?phone=${encodeURIComponent(phone)}`);
+        if (!res.ok) throw new Error("Failed");
+        const data = await res.json();
+        const mapped: Appointment[] = data.map((a: any) => ({
+          id: String(a.id),
+          clinicId: String(a.clinicId),
+          clinicName: a.clinicName,
+          clinicSpecialty: a.serviceAr || a.service,
+          date: a.date,
+          time: a.time,
+          status: (["upcoming", "completed", "cancelled"].includes(a.status) ? a.status : "upcoming") as Appointment["status"],
+          pointsEarned: a.pointsEarned || undefined,
+          notes: a.notes || undefined,
+        }));
+        setApiAppointments(mapped);
+      } catch {
+        setApiAppointments([]);
+      } finally {
+        setAppointmentsLoading(false);
+      }
+    };
+
     useEffect(() => {
       fetchClinics();
       fetchOffers();
@@ -389,6 +418,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
         setPatient(mappedPatient);
         setIsGuest(false);
         setIsAuthenticated(true);
+        fetchAppointments(mappedPatient.phone);
         return { success: true };
       } catch {
         return { success: false, error: "خطأ في الاتصال بالخادم" };
@@ -442,11 +472,30 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       );
     };
 
-    const bookAppointment = (clinicId: string) => {
-      setPatient((prev) => ({
-        ...prev,
-        totalVisits: prev.totalVisits + 1,
-      }));
+    const bookAppointment = async (clinicId: string, details?: {
+      service: string; serviceAr: string; date: string; time: string; notes?: string;
+    }) => {
+      if (!patient.phone || patient.id === "guest") return;
+      try {
+        await fetch(`${getApiBase()}/appointments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patientName: patient.name,
+            patientPhone: patient.phone,
+            clinicId: parseInt(clinicId),
+            service: details?.service || "استشارة",
+            serviceAr: details?.serviceAr || "استشارة طبية",
+            date: details?.date || new Date().toISOString().split("T")[0],
+            time: details?.time || "10:00 ص",
+            notes: details?.notes,
+          }),
+        });
+        fetchAppointments(patient.phone);
+        setPatient((prev) => ({ ...prev, totalVisits: prev.totalVisits + 1 }));
+      } catch {
+        setPatient((prev) => ({ ...prev, totalVisits: prev.totalVisits + 1 }));
+      }
     };
 
     const redeemOffer = (offerId: string) => {
@@ -478,7 +527,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       clinicsLoading,
       offers,
       offersLoading,
-      appointments: MOCK_APPOINTMENTS,
+      appointments: isGuest ? [] : apiAppointments,
       notifications,
       discounts,
       discountsLoading,

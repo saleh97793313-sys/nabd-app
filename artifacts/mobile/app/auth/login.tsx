@@ -91,7 +91,7 @@ export default function LoginScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={[styles.appName, { color: colors.tint }]}>HealthPoints</Text>
+          <Text style={[styles.appName, { color: colors.tint }]}>نبض</Text>
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>
             منصة الولاء الصحي
           </Text>

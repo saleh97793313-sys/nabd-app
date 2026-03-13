@@ -98,7 +98,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
-              <h1 className="font-bold text-lg leading-tight text-foreground whitespace-nowrap">HealthPoints</h1>
+              <h1 className="font-bold text-lg leading-tight text-foreground whitespace-nowrap">نبض</h1>
               <p className="text-xs text-muted-foreground">لوحة التحكم</p>
             </div>
           )}
@@ -174,7 +174,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <HeartPulse size={20} strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">HealthPoints</h1>
+            <h1 className="font-bold text-lg leading-tight">نبض</h1>
             <p className="text-xs text-muted-foreground">لوحة التحكم</p>
           </div>
           <button className="ms-auto p-1" onClick={() => setMobileOpen(false)}>
@@ -227,7 +227,7 @@ export function Layout({ children }: { children: ReactNode }) {
           {/* Page title */}
           <div className="hidden lg:block">
             <h2 className="text-xl font-bold text-foreground">
-              {currentPage?.name || "HealthPoints"}
+              {currentPage?.name || "نبض"}
             </h2>
           </div>
 
