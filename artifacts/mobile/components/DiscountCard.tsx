@@ -55,91 +55,58 @@ export function DiscountCard({ discount, colors, canUse, onUse }: Props) {
         styles.card,
         {
           backgroundColor: colors.backgroundCard,
-          opacity: discount.isUsed || isExpired ? 0.55 : 1,
+          opacity: discount.isUsed || isExpired ? 0.6 : 1,
         },
       ]}
     >
-      {/* Left stripe + percent */}
+      {/* Left thick vertical section */}
       <View style={[styles.leftSection, { backgroundColor: discount.color }]}>
         <Text style={styles.percentText}>{discount.discountPercent}%</Text>
         <Text style={styles.offText}>خصم</Text>
       </View>
 
+      {/* Dashed border simulator */}
+      <View style={[styles.dashedDivider, { borderColor: colors.border }]} />
+
       {/* Main content */}
-      <View style={styles.mainContent}>
-        <View style={styles.topRow}>
-          <View style={styles.badges}>
-            {discount.isUsed && (
-              <View style={[styles.statusBadge, { backgroundColor: "#E8E8E8" }]}>
-                <Text style={[styles.statusText, { color: "#999" }]}>مستخدم</Text>
-              </View>
-            )}
-            {isExpired && !discount.isUsed && (
-              <View style={[styles.statusBadge, { backgroundColor: "#FFE5E5" }]}>
-                <Text style={[styles.statusText, { color: "#FF4757" }]}>منتهي</Text>
-              </View>
-            )}
-            {isActive && (
-              <View style={[styles.statusBadge, { backgroundColor: discount.color + "20" }]}>
-                <Text style={[styles.statusText, { color: discount.color }]}>متاح</Text>
-              </View>
-            )}
-          </View>
+      <View style={styles.rightSection}>
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+            {discount.title}
+          </Text>
+          {discount.isUsed && (
+            <View style={[styles.statusBadge, { backgroundColor: colors.border }]}>
+              <Text style={[styles.statusText, { color: colors.textSecondary }]}>مستخدم</Text>
+            </View>
+          )}
+          {isExpired && !discount.isUsed && (
+            <View style={[styles.statusBadge, { backgroundColor: colors.danger + "20" }]}>
+              <Text style={[styles.statusText, { color: colors.danger }]}>منتهي</Text>
+            </View>
+          )}
         </View>
 
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-          {discount.title}
-        </Text>
         <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2}>
           {discount.description}
         </Text>
 
-        {discount.clinicName && (
-          <View style={styles.clinicRow}>
-            <Feather name="map-pin" size={11} color={colors.textMuted} />
-            <Text style={[styles.clinicText, { color: colors.textMuted }]} numberOfLines={1}>
-              {discount.clinicName}
-            </Text>
+        <View style={styles.codeContainer}>
+          <View style={[styles.codeBox, { borderColor: discount.color }]}>
+            <Text style={[styles.codeText, { color: discount.color }]}>{discount.code}</Text>
           </View>
-        )}
-
-        <View style={styles.applicableRow}>
-          <Feather name="check-circle" size={11} color={discount.color} />
-          <Text style={[styles.applicableText, { color: colors.textSecondary }]} numberOfLines={1}>
-            {discount.applicableTo}
-          </Text>
-        </View>
-
-        {/* Dashed divider */}
-        <View style={[styles.dashedLine, { borderColor: colors.border }]} />
-
-        {/* Code + actions */}
-        <View style={styles.codeRow}>
-          <Pressable
-            onPress={handleCopy}
-            style={[styles.copyBtn, { backgroundColor: discount.color + "15" }]}
-          >
-            <Feather
-              name={copied ? "check" : "copy"}
-              size={13}
-              color={discount.color}
-            />
-            <Text style={[styles.copyText, { color: discount.color }]}>
-              {copied ? "تم النسخ" : "نسخ"}
-            </Text>
+          <Pressable onPress={handleCopy} style={styles.copyBtn}>
+            <Feather name={copied ? "check" : "copy"} size={16} color={discount.color} />
           </Pressable>
-
-          <View style={[styles.codeBox, { borderColor: discount.color + "40", backgroundColor: discount.color + "08" }]}>
-            <Text style={[styles.codeText, { color: discount.color }]}>
-              {discount.code}
-            </Text>
-          </View>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={[styles.expiryText, { color: colors.textMuted }]}>
-            ينتهي: {discount.expiryDate}
-          </Text>
+        <View style={styles.footerRow}>
+          <View style={styles.expiryContainer}>
+            <Feather name="clock" size={12} color={colors.textMuted} />
+            <Text style={[styles.expiryText, { color: colors.textMuted }]}>
+              ينتهي: {discount.expiryDate}
+            </Text>
+          </View>
+          
           {isActive && (
             <Pressable
               onPress={handleUse}
@@ -163,138 +130,115 @@ const LEVEL_LABELS: Record<string, string> = {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 18,
+    borderRadius: 20,
     flexDirection: "row-reverse",
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 4,
+    minHeight: 120,
   },
   leftSection: {
-    width: 64,
+    width: 80,
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 4,
   },
   percentText: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: 28,
     fontFamily: "Inter_700Bold",
   },
   offText: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
   },
-  mainContent: {
+  dashedDivider: {
+    width: 1,
+    borderLeftWidth: 1,
+    borderStyle: "dashed",
+    marginVertical: 10,
+  },
+  rightSection: {
     flex: 1,
     padding: 14,
-    gap: 5,
+    justifyContent: "space-between",
   },
-  topRow: {
+  headerRow: {
     flexDirection: "row-reverse",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
   },
-  badges: {
-    flexDirection: "row-reverse",
-    gap: 6,
+  title: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    flex: 1,
+    textAlign: "right",
   },
   statusBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
   },
   statusText: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
   },
-  title: {
-    fontSize: 15,
-    fontFamily: "Inter_700Bold",
-    textAlign: "right",
-  },
   description: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     textAlign: "right",
-    lineHeight: 18,
+    marginBottom: 12,
   },
-  clinicRow: {
+  codeContainer: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 4,
-  },
-  clinicText: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    flex: 1,
-    textAlign: "right",
-  },
-  applicableRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 4,
-  },
-  applicableText: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    flex: 1,
-    textAlign: "right",
-  },
-  dashedLine: {
-    borderTopWidth: 1,
-    borderStyle: "dashed",
-    marginVertical: 4,
-  },
-  codeRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 12,
   },
   codeBox: {
     borderWidth: 1.5,
+    borderStyle: "dashed",
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderStyle: "dashed",
+    paddingVertical: 6,
+    backgroundColor: "rgba(0,0,0,0.02)",
   },
   codeText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: "Inter_700Bold",
     letterSpacing: 2,
   },
   copyBtn: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    padding: 8,
   },
-  copyText: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-  },
-  footer: {
+  footerRow: {
     flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 2,
+  },
+  expiryContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 4,
   },
   expiryText: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
   },
   useBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   useBtnText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
 });

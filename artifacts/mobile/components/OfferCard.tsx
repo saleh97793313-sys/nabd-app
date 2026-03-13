@@ -16,6 +16,8 @@ export function OfferCard({ offer, colors, compact = false, onPress }: Props) {
     ((offer.originalPrice - offer.discountedPrice) / offer.originalPrice) * 100
   );
 
+  const isExpiringSoon = new Date(offer.expiryDate).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
+
   if (compact) {
     return (
       <Pressable
@@ -25,30 +27,21 @@ export function OfferCard({ offer, colors, compact = false, onPress }: Props) {
           { backgroundColor: colors.backgroundCard, opacity: pressed ? 0.9 : 1 },
         ]}
       >
-        <View style={styles.compactBadge}>
-          <Text style={styles.compactBadgeText}>-{discount}%</Text>
-        </View>
-
-        {offer.isFeatured && (
-          <View
-            style={[
-              styles.featuredDot,
-              { backgroundColor: colors.accent },
-            ]}
-          />
-        )}
-
+        <View style={[styles.topBanner, { backgroundColor: colors.tint }]} />
         <View style={styles.compactContent}>
-          <Text
-            style={[styles.compactClinic, { color: colors.textSecondary }]}
-            numberOfLines={1}
-          >
-            {offer.clinicSpecialty}
-          </Text>
-          <Text
-            style={[styles.compactTitle, { color: colors.text }]}
-            numberOfLines={2}
-          >
+          <View style={styles.compactHeaderRow}>
+            {offer.isFeatured && (
+              <View style={[styles.featuredBadge, { backgroundColor: colors.accent + "15" }]}>
+                <Feather name="star" size={10} color={colors.accent} />
+                <Text style={[styles.featuredText, { color: colors.accent }]}>مميز</Text>
+              </View>
+            )}
+            <View style={[styles.discountBadgeCompact, { backgroundColor: colors.accent }]}>
+              <Text style={styles.discountTextCompact}>خصم {discount}%</Text>
+            </View>
+          </View>
+
+          <Text style={[styles.compactTitle, { color: colors.text }]} numberOfLines={2}>
             {offer.title}
           </Text>
 
@@ -58,13 +51,6 @@ export function OfferCard({ offer, colors, compact = false, onPress }: Props) {
             </Text>
             <Text style={[styles.compactOriginal, { color: colors.textMuted }]}>
               {offer.originalPrice}
-            </Text>
-          </View>
-
-          <View style={styles.compactPoints}>
-            <Feather name="star" size={11} color={colors.accent} />
-            <Text style={[styles.compactPointsText, { color: colors.textSecondary }]}>
-              +{offer.pointsEarned} نقطة
             </Text>
           </View>
         </View>
@@ -84,28 +70,24 @@ export function OfferCard({ offer, colors, compact = false, onPress }: Props) {
         },
       ]}
     >
-      {/* Discount badge */}
-      <View style={[styles.discountBadge, { backgroundColor: colors.danger }]}>
-        <Text style={styles.discountText}>-{discount}%</Text>
-      </View>
-
+      <View style={[styles.topBanner, { backgroundColor: colors.tint }]} />
+      
       <View style={styles.cardBody}>
-        {/* Header */}
-        <View style={styles.cardHeader}>
-          <View style={styles.categoryBadge}>
-            <Text style={[styles.categoryText, { color: colors.tint }]}>
-              {offer.category}
-            </Text>
+        {/* Absolute Badges */}
+        <View style={styles.badgesContainer}>
+           <View style={[styles.discountBadge, { backgroundColor: colors.accent }]}>
+            <Text style={styles.discountText}>خصم {discount}%</Text>
           </View>
-          {offer.isFeatured && (
-            <View style={[styles.featuredBadge, { backgroundColor: colors.accent + "20" }]}>
-              <Feather name="star" size={11} color={colors.accent} />
-              <Text style={[styles.featuredText, { color: colors.accent }]}>
-                مميز
-              </Text>
-            </View>
-          )}
         </View>
+
+        {offer.isFeatured && (
+          <View style={styles.featuredBadgeWrapper}>
+            <View style={[styles.featuredBadge, { backgroundColor: colors.accent + "15" }]}>
+              <Feather name="star" size={12} color={colors.accent} />
+              <Text style={[styles.featuredText, { color: colors.accent }]}>مميز</Text>
+            </View>
+          </View>
+        )}
 
         {/* Content */}
         <Text style={[styles.clinicName, { color: colors.textSecondary }]}>
@@ -114,7 +96,7 @@ export function OfferCard({ offer, colors, compact = false, onPress }: Props) {
         <Text style={[styles.offerTitle, { color: colors.text }]}>
           {offer.title}
         </Text>
-        <Text style={[styles.description, { color: colors.textSecondary }]}>
+        <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2}>
           {offer.description}
         </Text>
 
@@ -129,31 +111,20 @@ export function OfferCard({ offer, colors, compact = false, onPress }: Props) {
             </Text>
           </View>
 
-          <View style={styles.rightSection}>
-            <View
-              style={[
-                styles.pointsPill,
-                { backgroundColor: colors.accent + "15" },
-              ]}
-            >
-              <Feather name="star" size={12} color={colors.accent} />
-              <Text style={[styles.pointsText, { color: colors.accent }]}>
-                +{offer.pointsEarned}
-              </Text>
-            </View>
-            {offer.pointsRequired > 0 && (
-              <Text style={[styles.requiredPoints, { color: colors.textMuted }]}>
-                يتطلب {offer.pointsRequired} نقطة
-              </Text>
-            )}
+          <View style={styles.pointsBadge}>
+            <Feather name="circle" size={14} color={colors.accent} />
+            <Text style={[styles.pointsBadgeText, { color: colors.accent }]}>
+              {offer.pointsEarned} نقطة مكتسبة
+            </Text>
           </View>
         </View>
 
-        <View style={[styles.expiryRow, { borderTopColor: colors.border }]}>
-          <Feather name="clock" size={12} color={colors.textMuted} />
-          <Text style={[styles.expiryText, { color: colors.textMuted }]}>
-            ينتهي: {offer.expiryDate}
-          </Text>
+        <View style={styles.expiryRow}>
+          <View style={[styles.expiryChip, { backgroundColor: isExpiringSoon ? colors.danger + "15" : colors.textMuted + "15" }]}>
+            <Text style={[styles.expiryText, { color: isExpiringSoon ? colors.danger : colors.textMuted }]}>
+              ينتهي: {offer.expiryDate}
+            </Text>
+          </View>
         </View>
       </View>
     </Pressable>
@@ -163,77 +134,61 @@ export function OfferCard({ offer, colors, compact = false, onPress }: Props) {
 const styles = StyleSheet.create({
   // Compact styles
   compactCard: {
-    width: 180,
-    borderRadius: 18,
+    width: 200,
+    borderRadius: 20,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  compactBadge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    backgroundColor: "#FF4757",
+  topBanner: {
+    height: 8,
+    width: "100%",
+  },
+  compactContent: {
+    padding: 16,
+    gap: 8,
+  },
+  compactHeaderRow: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 4,
+    height: 24,
+  },
+  discountBadgeCompact: {
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    zIndex: 1,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  compactBadgeText: {
+  discountTextCompact: {
     color: "#fff",
     fontSize: 11,
     fontFamily: "Inter_700Bold",
   },
-  featuredDot: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    zIndex: 1,
-  },
-  compactContent: {
-    padding: 14,
-    gap: 4,
-  },
-  compactClinic: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
-  },
   compactTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Inter_700Bold",
     textAlign: "right",
-    lineHeight: 20,
+    lineHeight: 22,
+    minHeight: 44,
   },
   compactPriceRow: {
     flexDirection: "row-reverse",
     alignItems: "baseline",
-    gap: 6,
+    gap: 8,
     marginTop: 4,
   },
   compactPrice: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
   },
   compactOriginal: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     textDecorationLine: "line-through",
-  },
-  compactPoints: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 4,
-  },
-  compactPointsText: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
   },
 
   // Full card styles
@@ -241,45 +196,34 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  discountBadge: {
-    position: "absolute",
-    top: 14,
-    left: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    zIndex: 1,
-  },
-  discountText: {
-    color: "#fff",
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   cardBody: {
     padding: 16,
+    position: "relative",
   },
-  cardHeader: {
+  badgesContainer: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 1,
+  },
+  discountBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  discountText: {
+    color: "#fff",
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+  },
+  featuredBadgeWrapper: {
     flexDirection: "row-reverse",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: 8,
-    paddingRight: 0,
-    paddingLeft: 50,
-  },
-  categoryBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    backgroundColor: "rgba(0, 200, 150, 0.1)",
-  },
-  categoryText: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
   },
   featuredBadge: {
     flexDirection: "row-reverse",
@@ -287,36 +231,38 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   featuredText: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
   },
   clinicName: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
     textAlign: "right",
     marginBottom: 4,
+    paddingRight: 80, // Space for discount badge
   },
   offerTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
     textAlign: "right",
-    marginBottom: 4,
+    marginBottom: 8,
+    paddingRight: 80,
   },
   description: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
     textAlign: "right",
-    lineHeight: 20,
-    marginBottom: 12,
+    lineHeight: 22,
+    marginBottom: 16,
   },
   cardFooter: {
     flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 16,
   },
   priceSection: {
     flexDirection: "row-reverse",
@@ -324,43 +270,33 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   discountedPrice: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: "Inter_700Bold",
   },
   originalPrice: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Inter_400Regular",
     textDecorationLine: "line-through",
   },
-  rightSection: {
-    alignItems: "flex-end",
-    gap: 4,
-  },
-  pointsPill: {
+  pointsBadge: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+    gap: 6,
   },
-  pointsText: {
+  pointsBadgeText: {
     fontSize: 13,
-    fontFamily: "Inter_700Bold",
-  },
-  requiredPoints: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_600SemiBold",
   },
   expiryRow: {
     flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 5,
-    paddingTop: 10,
-    borderTopWidth: 1,
+  },
+  expiryChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   expiryText: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_500Medium",
   },
 });

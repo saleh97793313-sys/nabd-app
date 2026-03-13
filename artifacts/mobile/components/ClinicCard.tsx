@@ -29,59 +29,43 @@ export function ClinicCard({ clinic, colors, onPress }: Props) {
         },
       ]}
     >
-      {/* Avatar */}
-      <View
-        style={[styles.avatar, { backgroundColor: colors.tint + "15" }]}
-      >
-        <Text style={[styles.avatarText, { color: colors.tint }]}>
-          {initials}
-        </Text>
-      </View>
-
-      {/* Content */}
-      <View style={styles.content}>
-        <View style={styles.nameRow}>
-          {clinic.verified && (
-            <Feather name="check-circle" size={14} color={colors.tint} />
-          )}
-          <Text
-            style={[styles.clinicName, { color: colors.text }]}
-            numberOfLines={1}
-          >
-            {clinic.name}
+      <View style={[styles.leftAccent, { backgroundColor: colors.tint }]} />
+      
+      <View style={styles.cardContent}>
+        {/* Avatar */}
+        <View style={[styles.avatar, { backgroundColor: colors.tint + "20" }]}>
+          <Text style={[styles.avatarText, { color: colors.tint }]}>
+            {initials}
           </Text>
         </View>
 
-        <Text style={[styles.specialty, { color: colors.textSecondary }]}>
-          {clinic.specialty}
-        </Text>
-
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Feather name="tag" size={12} color={colors.textMuted} />
-            <Text style={[styles.metaText, { color: colors.textMuted }]}>
-              {clinic.offerCount} عروض
+        {/* Content */}
+        <View style={styles.infoContainer}>
+          <View style={styles.nameRow}>
+            <Text style={[styles.clinicName, { color: colors.text }]} numberOfLines={1}>
+              {clinic.name}
             </Text>
+            {clinic.verified && (
+              <View style={[styles.verifiedBadge, { backgroundColor: colors.success }]}>
+                <Feather name="check" size={8} color="#fff" />
+              </View>
+            )}
           </View>
-          <View style={styles.metaDot} />
-          <View style={styles.metaItem}>
-            <Feather name="users" size={12} color={colors.textMuted} />
-            <Text style={[styles.metaText, { color: colors.textMuted }]}>
-              {clinic.totalPatients.toLocaleString()}+ مريض
-            </Text>
+
+          <View style={styles.tagsRow}>
+            <View style={[styles.specialtyBadge, { backgroundColor: colors.tint + "12" }]}>
+              <Text style={[styles.specialtyText, { color: colors.tint }]}>
+                {clinic.specialty}
+              </Text>
+            </View>
+            <View style={styles.ratingRow}>
+              <Feather name="star" size={12} color={colors.accent} style={{ marginTop: -2 }} />
+              <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
+                {clinic.rating}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-
-      {/* Rating */}
-      <View style={styles.ratingSection}>
-        <View style={[styles.ratingBadge, { backgroundColor: colors.accent + "15" }]}>
-          <Feather name="star" size={13} color={colors.accent} />
-          <Text style={[styles.ratingText, { color: colors.accent }]}>
-            {clinic.rating}
-          </Text>
-        </View>
-        <Feather name="chevron-left" size={18} color={colors.textMuted} />
       </View>
     </Pressable>
   );
@@ -89,86 +73,85 @@ export function ClinicCard({ clinic, colors, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    flexDirection: "row-reverse",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    overflow: "hidden",
+  },
+  leftAccent: {
+    width: 4,
+    borderRadius: 4,
+    marginVertical: 12,
+    marginLeft: 12,
+  },
+  cardContent: {
+    flex: 1,
     flexDirection: "row-reverse",
     alignItems: "center",
-    borderRadius: 16,
-    padding: 14,
-    marginHorizontal: 20,
-    marginBottom: 10,
-    gap: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    padding: 16,
+    gap: 16,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 60,
+    height: 60,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
   },
-  content: {
+  infoContainer: {
     flex: 1,
-    gap: 3,
+    gap: 6,
   },
   nameRow: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 4,
+    gap: 6,
   },
   clinicName: {
-    fontSize: 15,
-    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
     textAlign: "right",
-    flex: 1,
+    flexShrink: 1,
   },
-  specialty: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
+  verifiedBadge: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  metaRow: {
+  tagsRow: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 8,
-    marginTop: 2,
+    gap: 12,
   },
-  metaItem: {
+  specialtyBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  specialtyText: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+  },
+  ratingRow: {
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: 4,
-  },
-  metaText: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-  },
-  metaDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: "#ccc",
-  },
-  ratingSection: {
-    alignItems: "center",
-    gap: 8,
-  },
-  ratingBadge: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
   },
   ratingText: {
     fontSize: 13,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Inter_600SemiBold",
   },
 });

@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
-  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -11,6 +10,7 @@ import {
   Text,
   View,
   useColorScheme,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -40,7 +40,7 @@ export default function HomeScreen() {
     (d) => !d.isUsed && canUseDiscount(patient.level, d.requiredLevel)
   ).slice(0, 2);
 
-  const topPadding = Platform.OS === "web" ? 67 : insets.top;
+  const topPadding = Platform.OS === "web" ? 40 : insets.top;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -53,12 +53,12 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerTextContainer}>
             <Text style={[styles.greeting, { color: colors.textSecondary }]}>
-              مرحباً 👋
+              مرحباً بك 👋
             </Text>
             <Text style={[styles.userName, { color: colors.text }]}>
-              {patient.name.split(" ")[0]} {patient.name.split(" ")[1]}
+              {patient.name}
             </Text>
           </View>
           <View style={styles.headerActions}>
@@ -81,6 +81,19 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={[styles.searchBar, { backgroundColor: colors.backgroundCard }]}>
+            <Feather name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
+            <TextInput
+              placeholder="ابحث عن عيادة أو خدمة..."
+              placeholderTextColor={colors.textMuted}
+              style={[styles.searchInput, { color: colors.text }]}
+              editable={false}
+            />
+          </View>
+        </View>
+
         {/* Points Card */}
         <View style={styles.section}>
           <PointsCard patient={patient} colors={colors} />
@@ -88,32 +101,37 @@ export default function HomeScreen() {
 
         {/* Quick Stats */}
         <View style={styles.statsRow}>
-          <View
-            style={[styles.statCard, { backgroundColor: colors.backgroundCard }]}
-          >
-            <Text style={[styles.statValue, { color: colors.tint }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.backgroundCard }]}>
+            <View style={[styles.statIconWrapper, { backgroundColor: colors.tint + "15" }]}>
+              <Feather name="activity" size={18} color={colors.tint} />
+            </View>
+            <Text style={[styles.statValue, { color: colors.text }]}>
               {patient.totalVisits}
             </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
               زيارة
             </Text>
           </View>
-          <View
-            style={[styles.statCard, { backgroundColor: colors.backgroundCard }]}
-          >
-            <Text style={[styles.statValue, { color: colors.accent }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.backgroundCard }]}>
+            <View style={[styles.statIconWrapper, { backgroundColor: colors.accent + "15" }]}>
+              <Feather name="folder" size={18} color={colors.accent} />
+            </View>
+            <Text style={[styles.statValue, { color: colors.text }]}>
               {patient.conditions.length}
             </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              حالات متابعة
+              ملفات
             </Text>
           </View>
-          <View
-            style={[styles.statCard, { backgroundColor: colors.backgroundCard }]}
-          >
-            <LevelBadge level={patient.level} size="small" />
+          <View style={[styles.statCard, { backgroundColor: colors.backgroundCard }]}>
+            <View style={styles.statIconWrapper}>
+              <LevelBadge level={patient.level} size="small" />
+            </View>
+            <Text style={[styles.statValue, { color: colors.text, fontSize: 16, marginTop: 4 }]}>
+              {patient.level === 'bronze' ? 'برونزي' : patient.level === 'silver' ? 'فضي' : patient.level === 'gold' ? 'ذهبي' : 'بلاتيني'}
+            </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              مستواك
+              المستوى
             </Text>
           </View>
         </View>
@@ -122,9 +140,12 @@ export default function HomeScreen() {
         {availableDiscounts.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                خصوماتي الحصرية
-              </Text>
+              <View style={styles.sectionTitleRow}>
+                <View style={[styles.titleAccent, { backgroundColor: colors.tint }]} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  خصوماتي الحصرية
+                </Text>
+              </View>
               <Pressable onPress={() => router.push("/discounts")}>
                 <Text style={[styles.seeAll, { color: colors.tint }]}>
                   عرض الكل
@@ -147,9 +168,12 @@ export default function HomeScreen() {
 
         {/* Featured Offers */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            عروض مميزة لك
-          </Text>
+          <View style={styles.sectionTitleRow}>
+            <View style={[styles.titleAccent, { backgroundColor: colors.tint }]} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              عروض مميزة لك
+            </Text>
+          </View>
           <Pressable onPress={() => router.push("/(tabs)/offers")}>
             <Text style={[styles.seeAll, { color: colors.tint }]}>
               عرض الكل
@@ -175,9 +199,12 @@ export default function HomeScreen() {
 
         {/* Top Clinics */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            عيادات موصى بها
-          </Text>
+          <View style={styles.sectionTitleRow}>
+            <View style={[styles.titleAccent, { backgroundColor: colors.tint }]} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              عيادات موصى بها
+            </Text>
+          </View>
           <Pressable onPress={() => router.push("/(tabs)/offers")}>
             <Text style={[styles.seeAll, { color: colors.tint }]}>
               عرض الكل
@@ -190,14 +217,16 @@ export default function HomeScreen() {
             <ActivityIndicator size="small" color={colors.tint} />
           </View>
         ) : (
-          topClinics.map((clinic) => (
-            <ClinicCard
-              key={clinic.id}
-              clinic={clinic}
-              colors={colors}
-              onPress={() => router.push(`/clinic/${clinic.id}`)}
-            />
-          ))
+          <View style={styles.clinicsList}>
+            {topClinics.map((clinic) => (
+              <ClinicCard
+                key={clinic.id}
+                clinic={clinic}
+                colors={colors}
+                onPress={() => router.push(`/clinic/${clinic.id}`)}
+              />
+            ))}
+          </View>
         )}
       </ScrollView>
     </View>
@@ -212,79 +241,103 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  headerTextContainer: {
+    flex: 1,
+    alignItems: "flex-end",
   },
   greeting: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     textAlign: "right",
   },
   userName: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: "Inter_700Bold",
     textAlign: "right",
     marginTop: 2,
   },
   headerActions: {
     flexDirection: "row",
-    gap: 10,
   },
   iconBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
   },
   badge: {
     position: "absolute",
-    top: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    top: 0,
+    right: 0,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
   },
   badgeText: {
     color: "#fff",
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
   },
+  searchContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  searchBar: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    height: 48,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+  },
+  searchIcon: {
+    marginLeft: 12,
+  },
+  searchInput: {
+    flex: 1,
+    height: "100%",
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+  },
   section: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   statsRow: {
     flexDirection: "row-reverse",
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   statCard: {
     flex: 1,
     borderRadius: 16,
-    padding: 14,
+    padding: 16,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+  },
+  statIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
   },
@@ -292,8 +345,18 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 14,
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  sectionTitleRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 8,
+  },
+  titleAccent: {
+    width: 3,
+    height: 20,
+    borderRadius: 2,
   },
   sectionTitle: {
     fontSize: 18,
@@ -304,14 +367,17 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
   },
   horizontalScroll: {
-    paddingHorizontal: 20,
-    paddingBottom: 4,
-    gap: 12,
-    marginBottom: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 8,
+    gap: 16,
+    marginBottom: 32,
   },
   discountsSection: {
-    paddingHorizontal: 20,
-    gap: 12,
-    marginBottom: 24,
+    paddingHorizontal: 24,
+    gap: 16,
+    marginBottom: 32,
+  },
+  clinicsList: {
+    paddingHorizontal: 4, // 20 in card + 4 = 24
   },
 });

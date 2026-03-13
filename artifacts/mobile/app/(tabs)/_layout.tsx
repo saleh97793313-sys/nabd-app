@@ -1,11 +1,11 @@
 import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { Icon, Label, NativeTabs, Badge } from "expo-router/unstable-native-tabs";
+import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { Platform, StyleSheet, View, useColorScheme, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
@@ -49,19 +49,23 @@ function ClassicTabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.tint,
-        tabBarInactiveTintColor: colors.tabIconDefault,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: isIOS ? "transparent" : colors.backgroundSecondary,
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: colors.border,
-          elevation: 0,
-          paddingBottom: safeAreaInsets.bottom,
-          ...(isWeb ? { height: 84 } : {}),
+          backgroundColor: colors.backgroundCard,
+          borderTopWidth: 0,
+          elevation: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
+          height: 80,
+          paddingBottom: 16,
         },
         tabBarLabelStyle: {
           fontFamily: "Inter_500Medium",
           fontSize: 11,
+          marginTop: -4,
         },
         tabBarBackground: () =>
           isIOS ? (
@@ -74,7 +78,7 @@ function ClassicTabLayout() {
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: colors.backgroundSecondary },
+                { backgroundColor: colors.backgroundCard },
               ]}
             />
           ) : null,
@@ -84,53 +88,85 @@ function ClassicTabLayout() {
         name="index"
         options={{
           title: "الرئيسية",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="house.fill" tintColor={color} size={24} />
-            ) : (
-              <Feather name="home" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => (
+            <View style={styles.iconContainer}>
+              {focused && <View style={[styles.activeDot, { backgroundColor: colors.tint }]} />}
+              {isIOS ? (
+                <SymbolView name="house.fill" tintColor={color} size={24} />
+              ) : (
+                <Feather name="home" size={24} color={color} />
+              )}
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
         name="offers"
         options={{
           title: "العروض",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="tag.fill" tintColor={color} size={24} />
-            ) : (
-              <Feather name="tag" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => (
+            <View style={styles.iconContainer}>
+              {focused && <View style={[styles.activeDot, { backgroundColor: colors.tint }]} />}
+              {isIOS ? (
+                <SymbolView name="tag.fill" tintColor={color} size={24} />
+              ) : (
+                <Feather name="tag" size={24} color={color} />
+              )}
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
         name="appointments"
         options={{
           title: "مواعيدي",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="calendar" tintColor={color} size={24} />
-            ) : (
-              <Feather name="calendar" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => (
+            <View style={styles.iconContainer}>
+              {focused && <View style={[styles.activeDot, { backgroundColor: colors.tint }]} />}
+              {isIOS ? (
+                <SymbolView name="calendar" tintColor={color} size={24} />
+              ) : (
+                <Feather name="calendar" size={24} color={color} />
+              )}
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "حسابي",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="person.fill" tintColor={color} size={24} />
-            ) : (
-              <Feather name="user" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => (
+            <View style={styles.iconContainer}>
+              {focused && <View style={[styles.activeDot, { backgroundColor: colors.tint }]} />}
+              {isIOS ? (
+                <SymbolView name="person.fill" tintColor={color} size={24} />
+              ) : (
+                <Feather name="user" size={24} color={color} />
+              )}
+            </View>
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 32,
+    marginTop: 4,
+  },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    position: "absolute",
+    top: -6,
+  }
+});
 
 export default function TabLayout() {
   if (isLiquidGlassAvailable()) {
