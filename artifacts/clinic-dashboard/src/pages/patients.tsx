@@ -199,7 +199,7 @@ export default function PatientsPage() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
   const filtered = patients.filter(p => {
-    const matchSearch = p.name.includes(searchTerm) || p.phone.includes(searchTerm);
+    const matchSearch = p.name.includes(searchTerm) || p.phone.includes(searchTerm) || p.email.includes(searchTerm);
     const matchLevel = levelFilter === "all" || p.level === levelFilter;
     return matchSearch && matchLevel;
   });
@@ -238,7 +238,7 @@ export default function PatientsPage() {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <input
               type="text"
-              placeholder="البحث بالاسم أو رقم الهاتف..."
+              placeholder="البحث بالاسم أو الهاتف أو الإيميل..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-4 pr-11 py-3 rounded-xl border border-border bg-card shadow-sm focus:ring-2 focus:ring-primary outline-none text-right"
@@ -280,12 +280,13 @@ export default function PatientsPage() {
                     <tr key={patient.id} className="hover:bg-muted/30 transition-colors">
                       <td className="p-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
                             {patient.name.charAt(0)}
                           </div>
                           <div>
                             <p className="font-bold text-foreground">{patient.name}</p>
                             <p className="text-xs text-muted-foreground mt-0.5" dir="ltr">{patient.phone}</p>
+                            <p className="text-xs text-muted-foreground/70 mt-0.5" dir="ltr">{patient.email}</p>
                           </div>
                         </div>
                       </td>
