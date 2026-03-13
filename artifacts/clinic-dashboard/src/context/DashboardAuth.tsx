@@ -35,15 +35,33 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   const [owner, setOwner] = useState<OwnerProfile | null>(null);
 
   useEffect(() => {
+    let needsClear = false;
     const savedCreds = localStorage.getItem(CREDS_KEY);
     if (savedCreds) {
       try {
         const parsed = JSON.parse(savedCreds);
-        if (parsed.email === "owner@nabd.om") {
-          localStorage.removeItem(CREDS_KEY);
-          localStorage.removeItem(OWNER_SESSION_KEY);
-        }
+        if (parsed.email === "owner@nabd.om") needsClear = true;
       } catch {}
+    }
+    const savedSession = localStorage.getItem(OWNER_SESSION_KEY);
+    if (savedSession) {
+      try {
+        const parsed = JSON.parse(savedSession);
+        if (parsed.email === "owner@nabd.om") needsClear = true;
+      } catch {}
+    }
+    const savedProfile = localStorage.getItem(OWNER_PROFILE_KEY);
+    if (savedProfile) {
+      try {
+        const parsed = JSON.parse(savedProfile);
+        if (parsed.email === "owner@nabd.om") needsClear = true;
+      } catch {}
+    }
+    if (needsClear) {
+      localStorage.removeItem(CREDS_KEY);
+      localStorage.removeItem(OWNER_SESSION_KEY);
+      localStorage.removeItem(OWNER_PROFILE_KEY);
+      return;
     }
     const session = localStorage.getItem(OWNER_SESSION_KEY);
     if (session) {
