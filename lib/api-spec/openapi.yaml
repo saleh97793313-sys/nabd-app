@@ -3,13 +3,23 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for HealthPoints clinic management platform
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: clinics
+    description: Clinic management
+  - name: offers
+    description: Clinic offers management
+  - name: appointments
+    description: Appointment management
+  - name: stats
+    description: Dashboard statistics
+  - name: discounts
+    description: Discount code management
 paths:
   /healthz:
     get:
@@ -24,6 +34,334 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /clinics:
+    get:
+      operationId: getClinics
+      tags: [clinics]
+      summary: Get all clinics
+      responses:
+        "200":
+          description: List of clinics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Clinic"
+    post:
+      operationId: createClinic
+      tags: [clinics]
+      summary: Create a new clinic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicInput"
+      responses:
+        "201":
+          description: Clinic created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clinic"
+
+  /clinics/{id}:
+    get:
+      operationId: getClinic
+      tags: [clinics]
+      summary: Get clinic by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Clinic details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clinic"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateClinic
+      tags: [clinics]
+      summary: Update clinic details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicInput"
+      responses:
+        "200":
+          description: Updated clinic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clinic"
+    delete:
+      operationId: deleteClinic
+      tags: [clinics]
+      summary: Delete a clinic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /clinics/{id}/offers:
+    get:
+      operationId: getClinicOffers
+      tags: [offers]
+      summary: Get offers for a clinic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Offer"
+
+  /offers:
+    get:
+      operationId: getOffers
+      tags: [offers]
+      summary: Get all offers
+      responses:
+        "200":
+          description: List of offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Offer"
+    post:
+      operationId: createOffer
+      tags: [offers]
+      summary: Create a new offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferInput"
+      responses:
+        "201":
+          description: Offer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Offer"
+
+  /offers/{id}:
+    patch:
+      operationId: updateOffer
+      tags: [offers]
+      summary: Update an offer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferInput"
+      responses:
+        "200":
+          description: Updated offer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Offer"
+    delete:
+      operationId: deleteOffer
+      tags: [offers]
+      summary: Delete an offer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /appointments:
+    get:
+      operationId: getAppointments
+      tags: [appointments]
+      summary: Get all appointments
+      responses:
+        "200":
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+
+  /appointments/{id}:
+    patch:
+      operationId: updateAppointmentStatus
+      tags: [appointments]
+      summary: Update appointment status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, confirmed, completed, cancelled]
+              required: [status]
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+  /discounts:
+    get:
+      operationId: getDiscounts
+      tags: [discounts]
+      summary: Get all discount codes
+      responses:
+        "200":
+          description: List of discounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Discount"
+    post:
+      operationId: createDiscount
+      tags: [discounts]
+      summary: Create a new discount code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountInput"
+      responses:
+        "201":
+          description: Discount created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Discount"
+
+  /discounts/{id}:
+    patch:
+      operationId: updateDiscount
+      tags: [discounts]
+      summary: Update a discount
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountInput"
+      responses:
+        "200":
+          description: Updated discount
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Discount"
+    delete:
+      operationId: deleteDiscount
+      tags: [discounts]
+      summary: Delete a discount
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /stats:
+    get:
+      operationId: getDashboardStats
+      tags: [stats]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /patients:
+    get:
+      operationId: getPatients
+      tags: [stats]
+      summary: Get all patients (members)
+      responses:
+        "200":
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Patient"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +372,423 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Clinic:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: string
+        specialty:
+          type: string
+        specialtyAr:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        addressAr:
+          type: string
+        city:
+          type: string
+        openHours:
+          type: string
+        rating:
+          type: number
+        isActive:
+          type: boolean
+        totalPatients:
+          type: integer
+        pointsPerVisit:
+          type: integer
+        description:
+          type: ["string", "null"]
+        descriptionAr:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - nameAr
+        - specialty
+        - specialtyAr
+        - phone
+        - email
+        - address
+        - addressAr
+        - city
+        - openHours
+        - rating
+        - isActive
+        - totalPatients
+        - pointsPerVisit
+        - createdAt
+
+    ClinicInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        specialty:
+          type: string
+        specialtyAr:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        addressAr:
+          type: string
+        city:
+          type: string
+        openHours:
+          type: string
+        pointsPerVisit:
+          type: integer
+        description:
+          type: ["string", "null"]
+        descriptionAr:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+      required:
+        - name
+        - nameAr
+        - specialty
+        - specialtyAr
+        - phone
+        - email
+        - address
+        - addressAr
+        - city
+        - openHours
+        - pointsPerVisit
+
+    Offer:
+      type: object
+      properties:
+        id:
+          type: integer
+        clinicId:
+          type: integer
+        clinicName:
+          type: string
+        title:
+          type: string
+        titleAr:
+          type: string
+        description:
+          type: string
+        descriptionAr:
+          type: string
+        originalPrice:
+          type: number
+        discountedPrice:
+          type: number
+        pointsRequired:
+          type: integer
+        category:
+          type: string
+        isFeatured:
+          type: boolean
+        isActive:
+          type: boolean
+        expiryDate:
+          type: string
+        usageCount:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - clinicId
+        - clinicName
+        - title
+        - titleAr
+        - description
+        - descriptionAr
+        - originalPrice
+        - discountedPrice
+        - pointsRequired
+        - category
+        - isFeatured
+        - isActive
+        - expiryDate
+        - usageCount
+        - createdAt
+
+    OfferInput:
+      type: object
+      properties:
+        clinicId:
+          type: integer
+        title:
+          type: string
+        titleAr:
+          type: string
+        description:
+          type: string
+        descriptionAr:
+          type: string
+        originalPrice:
+          type: number
+        discountedPrice:
+          type: number
+        pointsRequired:
+          type: integer
+        category:
+          type: string
+        isFeatured:
+          type: boolean
+        isActive:
+          type: boolean
+        expiryDate:
+          type: string
+      required:
+        - clinicId
+        - title
+        - titleAr
+        - description
+        - descriptionAr
+        - originalPrice
+        - discountedPrice
+        - pointsRequired
+        - category
+        - isFeatured
+        - isActive
+        - expiryDate
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        patientName:
+          type: string
+        patientPhone:
+          type: string
+        clinicId:
+          type: integer
+        clinicName:
+          type: string
+        service:
+          type: string
+        serviceAr:
+          type: string
+        date:
+          type: string
+        time:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+        pointsEarned:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - patientName
+        - patientPhone
+        - clinicId
+        - clinicName
+        - service
+        - serviceAr
+        - date
+        - time
+        - status
+        - pointsEarned
+        - createdAt
+
+    Discount:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        title:
+          type: string
+        titleAr:
+          type: string
+        description:
+          type: string
+        discountPercent:
+          type: integer
+        requiredLevel:
+          type: string
+          enum: [bronze, silver, gold, platinum]
+        clinicId:
+          type: ["integer", "null"]
+        clinicName:
+          type: ["string", "null"]
+        service:
+          type: string
+        expiryDate:
+          type: string
+        isActive:
+          type: boolean
+        usageCount:
+          type: integer
+        maxUsage:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - code
+        - title
+        - titleAr
+        - description
+        - discountPercent
+        - requiredLevel
+        - service
+        - expiryDate
+        - isActive
+        - usageCount
+        - maxUsage
+        - createdAt
+
+    DiscountInput:
+      type: object
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        titleAr:
+          type: string
+        description:
+          type: string
+        discountPercent:
+          type: integer
+        requiredLevel:
+          type: string
+          enum: [bronze, silver, gold, platinum]
+        clinicId:
+          type: ["integer", "null"]
+        service:
+          type: string
+        expiryDate:
+          type: string
+        isActive:
+          type: boolean
+        maxUsage:
+          type: integer
+      required:
+        - code
+        - title
+        - titleAr
+        - description
+        - discountPercent
+        - requiredLevel
+        - service
+        - expiryDate
+        - isActive
+        - maxUsage
+
+    DashboardStats:
+      type: object
+      properties:
+        totalPatients:
+          type: integer
+        totalClinics:
+          type: integer
+        totalAppointments:
+          type: integer
+        totalPointsIssued:
+          type: integer
+        activeOffers:
+          type: integer
+        revenueThisMonth:
+          type: number
+        appointmentsThisMonth:
+          type: integer
+        newPatientsThisMonth:
+          type: integer
+        levelDistribution:
+          type: object
+          properties:
+            bronze:
+              type: integer
+            silver:
+              type: integer
+            gold:
+              type: integer
+            platinum:
+              type: integer
+          required: [bronze, silver, gold, platinum]
+        monthlyAppointments:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              count:
+                type: integer
+            required: [month, count]
+      required:
+        - totalPatients
+        - totalClinics
+        - totalAppointments
+        - totalPointsIssued
+        - activeOffers
+        - revenueThisMonth
+        - appointmentsThisMonth
+        - newPatientsThisMonth
+        - levelDistribution
+        - monthlyAppointments
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        level:
+          type: string
+          enum: [bronze, silver, gold, platinum]
+        points:
+          type: integer
+        totalVisits:
+          type: integer
+        joinedAt:
+          type: string
+        lastVisit:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+        - phone
+        - email
+        - level
+        - points
+        - totalVisits
+        - joinedAt

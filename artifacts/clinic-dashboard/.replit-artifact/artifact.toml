@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/dashboard/"
+title = "لوحة تحكم العيادات - HealthPoints"
+version = "1.0.0"
+id = "artifacts/clinic-dashboard"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 18594
+name = "web"
+paths = ["/dashboard/"]
+
+[services.development]
+run = "pnpm --filter @workspace/clinic-dashboard run dev"
+
+[services.env]
+PORT = "18594"
+BASE_PATH = "/dashboard/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/clinic-dashboard", "run", "build"]
+publicDir = "artifacts/clinic-dashboard/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

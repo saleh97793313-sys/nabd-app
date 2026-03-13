@@ -1,0 +1,14 @@
+packages:
+  "recharts": "For rendering beautiful dashboard charts"
+  "framer-motion": "For page transitions and smooth micro-interactions"
+  "react-hook-form": "For form state management"
+  "@hookform/resolvers": "For Zod form validation"
+  "date-fns": "For date formatting"
+  "clsx": "For conditional tailwind classes"
+  "tailwind-merge": "For merging tailwind classes safely"
+  "lucide-react": "For beautiful consistent icons"
+
+notes:
+  - App is Arabic-first and uses RTL layout via dir="rtl" on root
+  - All API calls use the @workspace/api-client-react hooks
+  - Custom UI elements use Tailwind logical properties (start/end) for RTL support
