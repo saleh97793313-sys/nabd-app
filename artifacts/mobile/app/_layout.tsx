@@ -22,15 +22,18 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function AuthGate() {
-  const { isAuthenticated, authLoading } = useAppContext();
+  const { isAuthenticated, authLoading, enterAsGuest } = useAppContext();
   const segments = useSegments();
   const inAuthGroup = segments[0] === "auth";
 
   useEffect(() => {
     if (authLoading) return;
+    // If user is not authenticated and not in auth screens → enter as guest automatically
     if (!isAuthenticated && !inAuthGroup) {
-      router.replace("/auth/login");
-    } else if (isAuthenticated && inAuthGroup) {
+      enterAsGuest();
+    }
+    // If user is now authenticated and still on auth screen → go to main app
+    if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
     }
   }, [isAuthenticated, authLoading, inAuthGroup]);
@@ -46,7 +49,7 @@ function AuthGate() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="auth/login" options={{ animation: "fade" }} />
+      <Stack.Screen name="auth/login" options={{ animation: "slide_from_bottom", presentation: "modal" }} />
       <Stack.Screen name="auth/register" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="offer/[id]" options={{ presentation: "modal" }} />
       <Stack.Screen name="clinic/[id]" options={{ presentation: "card" }} />

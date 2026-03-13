@@ -387,6 +387,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
         const mappedPatient = mapPatientFromApi(data);
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
         setPatient(mappedPatient);
+        setIsGuest(false);
         setIsAuthenticated(true);
         return { success: true };
       } catch {
@@ -414,6 +415,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
         mappedPatient.points = 100;
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
         setPatient(mappedPatient);
+        setIsGuest(false);
         setIsAuthenticated(true);
         return { success: true };
       } catch {
@@ -423,9 +425,9 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
 
     const logout = async () => {
       await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
-      setIsAuthenticated(false);
-      setIsGuest(false);
-      setPatient(DEFAULT_PATIENT);
+      setPatient(GUEST_PATIENT);
+      setIsGuest(true);
+      setIsAuthenticated(true);
     };
 
     const enterAsGuest = () => {

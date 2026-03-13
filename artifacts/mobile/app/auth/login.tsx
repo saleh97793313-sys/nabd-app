@@ -24,18 +24,21 @@ export default function LoginScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { login, enterAsGuest } = useAppContext();
-
-  const handleGuest = () => {
-    enterAsGuest();
-    router.replace("/(tabs)");
-  };
+  const { login } = useAppContext();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleClose = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)");
+    }
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -47,7 +50,7 @@ export default function LoginScreen() {
     try {
       const result = await login(email.trim(), password);
       if (result.success) {
-        router.replace("/(tabs)");
+        router.replace("/(tabs)/profile");
       } else {
         setError(result.error || "بيانات الدخول غير صحيحة");
       }
@@ -66,11 +69,22 @@ export default function LoginScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* Close Button */}
+        <Pressable
+          onPress={handleClose}
+          style={({ pressed }) => [
+            styles.closeBtn,
+            { backgroundColor: colors.border, opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Feather name="x" size={20} color={colors.text} />
+        </Pressable>
+
         <View style={styles.logoArea}>
           <Image
             source={require("@/assets/images/icon.png")}
@@ -158,15 +172,6 @@ export default function LoginScreen() {
           </Pressable>
         </View>
 
-        <Pressable
-          onPress={handleGuest}
-          style={({ pressed }) => [styles.guestBtn, { opacity: pressed ? 0.6 : 1 }]}
-        >
-          <Feather name="eye" size={16} color={colors.textMuted} />
-          <Text style={[styles.guestText, { color: colors.textMuted }]}>
-            تصفح كضيف بدون تسجيل دخول
-          </Text>
-        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -289,17 +294,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_700Bold",
   },
-  guestBtn: {
-    flexDirection: "row-reverse",
+  closeBtn: {
+    alignSelf: "flex-end",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    marginTop: 4,
-  },
-  guestText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    textDecorationLine: "underline",
+    marginBottom: 8,
   },
 });
