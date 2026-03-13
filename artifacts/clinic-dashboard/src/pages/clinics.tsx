@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { 
   useGetClinics, 
   getGetClinicsQueryKey, 
@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import MapPicker from "@/components/MapPicker";
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -51,9 +52,17 @@ export default function ClinicsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClinic, setEditingClinic] = useState<Clinic | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ClinicFormData>({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<ClinicFormData>({
     resolver: zodResolver(clinicSchema),
   });
+
+  const watchedLat = watch("latitude");
+  const watchedLng = watch("longitude");
+
+  const handleMapChange = useCallback((lat: number, lng: number) => {
+    setValue("latitude", parseFloat(lat.toFixed(6)), { shouldValidate: true });
+    setValue("longitude", parseFloat(lng.toFixed(6)), { shouldValidate: true });
+  }, [setValue]);
 
   const openModal = (clinic?: Clinic) => {
     if (clinic) {
@@ -244,13 +253,37 @@ export default function ClinicsPage() {
                   <input {...register("pointsPerVisit")} type="number" dir="ltr" className="w-full p-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-foreground">خط العرض (Latitude)</label>
-                  <input {...register("latitude")} type="number" step="any" dir="ltr" placeholder="مثال: 23.5880" className="w-full p-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-foreground">خط الطول (Longitude)</label>
-                  <input {...register("longitude")} type="number" step="any" dir="ltr" placeholder="مثال: 58.3829" className="w-full p-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" />
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-bold text-foreground">موقع العيادة على الخريطة</label>
+                  <MapPicker
+                    latitude={watchedLat}
+                    longitude={watchedLng}
+                    onChange={handleMapChange}
+                  />
+                  <div className="flex gap-4 mt-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>خط العرض:</span>
+                      <span dir="ltr" className="font-mono text-foreground">{watchedLat ?? "—"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>خط الطول:</span>
+                      <span dir="ltr" className="font-mono text-foreground">{watchedLng ?? "—"}</span>
+                    </div>
+                    {(watchedLat != null && watchedLng != null) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValue("latitude", null);
+                          setValue("longitude", null);
+                        }}
+                        className="text-xs text-destructive hover:underline"
+                      >
+                        مسح الموقع
+                      </button>
+                    )}
+                  </div>
+                  <input type="hidden" {...register("latitude")} />
+                  <input type="hidden" {...register("longitude")} />
                 </div>
               </div>
 

@@ -102,6 +102,7 @@ Expo React Native mobile app for patients. Connects to the API via `EXPO_PUBLIC_
 - Tabs: الرئيسية (Home), العروض (Offers), الخريطة (Map), مواعيدي (Appointments), حسابي (Profile)
 - Map tab uses `expo-location` for user positioning and shows clinics sorted by distance
 - Clinics with lat/lng show distance and a "الاتجاهات" (Directions) button
+- Clinic detail page has a "عرض على خرائط جوجل" card that opens Google Maps with directions
 
 - Set `EXPO_PUBLIC_API_URL` in `artifacts/mobile/.env` to point to the production API (e.g. `https://your-api.up.railway.app/api`)
 - In development, `EXPO_PUBLIC_DOMAIN` is set automatically to the Replit dev domain
@@ -113,6 +114,8 @@ React + Vite admin dashboard for clinics. Built with Tailwind CSS.
 - Build requires `BASE_PATH=/dashboard/` and `PORT=3000`
 - In production, served as static files by the API server at `/dashboard`
 - Default login: `Saleh97793313@gmail.com` / `nabd@2026`
+- Clinic form has an interactive Leaflet/OpenStreetMap map picker for selecting clinic location (no API key needed)
+- Map picker supports search (Nominatim geocoding, scoped to Oman) and click-to-set-pin
 
 ## Deployment
 

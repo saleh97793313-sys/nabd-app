@@ -116,6 +116,36 @@ export default function ClinicDetailScreen() {
           </View>
         </View>
 
+        {/* Google Maps Location */}
+        {clinic.latitude != null && clinic.longitude != null && (
+          <Pressable
+            onPress={() => {
+              const url = Platform.OS === "ios"
+                ? `maps:?daddr=${clinic.latitude},${clinic.longitude}&q=${encodeURIComponent(clinic.name)}`
+                : `https://www.google.com/maps/dir/?api=1&destination=${clinic.latitude},${clinic.longitude}`;
+              Linking.openURL(url);
+            }}
+            style={[styles.mapCard, { backgroundColor: colors.backgroundCard }]}
+          >
+            <View style={styles.mapCardContent}>
+              <View style={[styles.mapIconContainer, { backgroundColor: colors.tint + "15" }]}>
+                <Feather name="map" size={24} color={colors.tint} />
+              </View>
+              <View style={styles.mapCardText}>
+                <Text style={[styles.mapCardTitle, { color: colors.text }]}>
+                  عرض على خرائط جوجل
+                </Text>
+                <Text style={[styles.mapCardSubtitle, { color: colors.textMuted }]}>
+                  اضغط للحصول على الاتجاهات
+                </Text>
+              </View>
+              <View style={[styles.mapCardArrow, { backgroundColor: colors.tint }]}>
+                <Feather name="navigation" size={16} color="#fff" />
+              </View>
+            </View>
+          </Pressable>
+        )}
+
         {/* Offers */}
         {clinicOffers.length > 0 && (
           <>
@@ -239,6 +269,50 @@ const styles = StyleSheet.create({
   contactDivider: {
     height: 1,
     marginHorizontal: 14,
+  },
+  mapCard: {
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  mapCardContent: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 14,
+  },
+  mapIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mapCardText: {
+    flex: 1,
+    gap: 2,
+  },
+  mapCardTitle: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    textAlign: "right",
+  },
+  mapCardSubtitle: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+  },
+  mapCardArrow: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   sectionTitle: {
     fontSize: 18,
