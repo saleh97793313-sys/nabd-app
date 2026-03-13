@@ -19,6 +19,12 @@ import { LevelBadge } from "@/components/LevelBadge";
 import { PointsCard } from "@/components/PointsCard";
 import { OfferCard } from "@/components/OfferCard";
 import { ClinicCard } from "@/components/ClinicCard";
+import { DiscountCard } from "@/components/DiscountCard";
+
+const LEVEL_ORDER = ["bronze", "silver", "gold", "platinum"];
+function canUseDiscount(patientLevel: string, requiredLevel: string) {
+  return LEVEL_ORDER.indexOf(patientLevel) >= LEVEL_ORDER.indexOf(requiredLevel);
+}
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();

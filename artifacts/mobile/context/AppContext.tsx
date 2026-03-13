@@ -65,6 +65,21 @@ export type Notification = {
   createdAt: string;
 };
 
+export type Discount = {
+  id: string;
+  title: string;
+  description: string;
+  discountPercent: number;
+  code: string;
+  applicableTo: string;
+  expiryDate: string;
+  isUsed: boolean;
+  requiredLevel: "bronze" | "silver" | "gold" | "platinum";
+  clinicName?: string;
+  clinicId?: string;
+  color: string;
+};
+
 const MOCK_CLINICS: Clinic[] = [
   {
     id: "c1",
@@ -234,6 +249,79 @@ const MOCK_APPOINTMENTS: Appointment[] = [
   },
 ];
 
+const MOCK_DISCOUNTS: Discount[] = [
+  {
+    id: "d1",
+    title: "خصم العضو الفضي",
+    description: "خصم خاص لأعضاء المستوى الفضي على جميع خدمات الأسنان",
+    discountPercent: 10,
+    code: "SILVER10",
+    applicableTo: "جميع خدمات الأسنان",
+    expiryDate: "2026-06-30",
+    isUsed: false,
+    requiredLevel: "silver",
+    clinicName: "عيادة الدكتور أحمد الصحة",
+    clinicId: "c1",
+    color: "#708090",
+  },
+  {
+    id: "d2",
+    title: "خصم الولاء الصحي",
+    description: "خصم على جلسات العلاج الطبيعي كمكافأة على ولائك",
+    discountPercent: 15,
+    code: "LOYAL15",
+    applicableTo: "جلسات العلاج الطبيعي",
+    expiryDate: "2026-05-31",
+    isUsed: false,
+    requiredLevel: "silver",
+    clinicName: "مركز الشفاء الطبي",
+    clinicId: "c2",
+    color: "#00C896",
+  },
+  {
+    id: "d3",
+    title: "خصم المتابعة الدورية",
+    description: "لأنك تهتم بصحتك — خصم على التحاليل الشاملة",
+    discountPercent: 20,
+    code: "CHECK20",
+    applicableTo: "باقة التحاليل الشاملة",
+    expiryDate: "2026-04-30",
+    isUsed: false,
+    requiredLevel: "bronze",
+    clinicName: "مختبر الدقة التشخيصية",
+    clinicId: "c4",
+    color: "#1A3A5C",
+  },
+  {
+    id: "d4",
+    title: "خصم الترحيب",
+    description: "خصم خاص لمستخدمي HealthPoints على أول زيارة جلدية",
+    discountPercent: 25,
+    code: "SKIN25",
+    applicableTo: "الاستشارة الجلدية الأولى",
+    expiryDate: "2026-05-15",
+    isUsed: false,
+    requiredLevel: "bronze",
+    clinicName: "عيادة الجلدية المتخصصة",
+    clinicId: "c3",
+    color: "#9B59B6",
+  },
+  {
+    id: "d5",
+    title: "خصم الذهبي الحصري",
+    description: "مكافأة حصرية لأعضاء المستوى الذهبي على طب الأسرة",
+    discountPercent: 30,
+    code: "GOLD30",
+    applicableTo: "جميع خدمات طب الأسرة",
+    expiryDate: "2026-07-31",
+    isUsed: false,
+    requiredLevel: "gold",
+    clinicName: "عيادة الرعاية الأولية",
+    clinicId: "c5",
+    color: "#FFB800",
+  },
+];
+
 const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "n1",
@@ -270,10 +358,12 @@ type AppContextType = {
   offers: Offer[];
   appointments: Appointment[];
   notifications: Notification[];
+  discounts: Discount[];
   unreadCount: number;
   markNotificationRead: (id: string) => void;
   bookAppointment: (clinicId: string) => void;
   redeemOffer: (offerId: string) => void;
+  markDiscountUsed: (id: string) => void;
 };
 
 const MOCK_PATIENT: Patient = {
@@ -293,6 +383,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
     const [patient, setPatient] = useState<Patient>(MOCK_PATIENT);
     const [notifications, setNotifications] =
       useState<Notification[]>(MOCK_NOTIFICATIONS);
+    const [discounts, setDiscounts] = useState<Discount[]>(MOCK_DISCOUNTS);
 
     const markNotificationRead = (id: string) => {
       setNotifications((prev) =>
@@ -320,6 +411,12 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       }
     };
 
+    const markDiscountUsed = (id: string) => {
+      setDiscounts((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, isUsed: true } : d))
+      );
+    };
+
     const unreadCount = notifications.filter((n) => !n.isRead).length;
 
     return {
@@ -331,10 +428,12 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       offers: MOCK_OFFERS,
       appointments: MOCK_APPOINTMENTS,
       notifications,
+      discounts,
       unreadCount,
       markNotificationRead,
       bookAppointment,
       redeemOffer,
+      markDiscountUsed,
     };
   }
 );

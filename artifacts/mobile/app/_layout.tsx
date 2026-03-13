@@ -27,6 +27,7 @@ function RootLayoutNav() {
       <Stack.Screen name="offer/[id]" options={{ presentation: "modal" }} />
       <Stack.Screen name="clinic/[id]" options={{ presentation: "card" }} />
       <Stack.Screen name="notifications" options={{ presentation: "card" }} />
+      <Stack.Screen name="discounts" options={{ presentation: "card" }} />
     </Stack>
   );
 }
