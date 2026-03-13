@@ -2,7 +2,26 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-export default function ClinicMapView(_props: any) {
+interface ClinicMapViewProps {
+  clinics: Array<{
+    id: string;
+    name: string;
+    specialty: string;
+    latitude: number;
+    longitude: number;
+  }>;
+  initialRegion: {
+    latitude: number;
+    longitude: number;
+    latitudeDelta: number;
+    longitudeDelta: number;
+  };
+  showsUserLocation: boolean;
+  onMarkerPress: (clinicId: string) => void;
+  tintColor: string;
+}
+
+export default function ClinicMapView(_props: ClinicMapViewProps) {
   return (
     <View style={styles.container}>
       <Feather name="map" size={48} color="#999" />

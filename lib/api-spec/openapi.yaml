@@ -413,6 +413,10 @@ components:
           type: integer
         pointsPerVisit:
           type: integer
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
         description:
           type: ["string", "null"]
         descriptionAr:
@@ -464,6 +468,10 @@ components:
           type: string
         pointsPerVisit:
           type: integer
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
         description:
           type: ["string", "null"]
         descriptionAr:
