@@ -8,7 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router, Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -21,6 +21,8 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+const SPLASH_MIN_DURATION = 2500;
+
 function AuthGate() {
   const { isAuthenticated, authLoading, enterAsGuest } = useAppContext();
   const segments = useSegments();
@@ -28,11 +30,9 @@ function AuthGate() {
 
   useEffect(() => {
     if (authLoading) return;
-    // If user is not authenticated and not in auth screens → enter as guest automatically
     if (!isAuthenticated && !inAuthGroup) {
       enterAsGuest();
     }
-    // If user is now authenticated and still on auth screen → go to main app
     if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
     }
@@ -63,13 +63,23 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    const timer = setTimeout(() => setMinTimeElapsed(true), SPLASH_MIN_DURATION);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const fontsReady = fontsLoaded || !!fontError;
+  const ready = fontsReady && minTimeElapsed;
+
+  useEffect(() => {
+    if (ready) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [ready]);
 
-  if (!fontsLoaded && !fontError) return <SplashLoader />;
+  if (!ready) return <SplashLoader />;
 
   return (
     <SafeAreaProvider>
