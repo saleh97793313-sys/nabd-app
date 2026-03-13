@@ -36,7 +36,7 @@ fi
 
 $RAILWAY variables set NODE_ENV=production
 $RAILWAY variables set DATABASE_URL="$DB_URL"
-$RAILWAY variables set SESSION_SECRET="nabd-session-$(date +%s)"
+$RAILWAY variables set SESSION_SECRET="$(openssl rand -hex 32)"
 
 echo ""
 echo "✅ تم ضبط المتغيرات!"
@@ -61,8 +61,9 @@ if [ -n "$DOMAIN" ]; then
   echo "║  الـ API: https://$DOMAIN/api/healthz"
   echo "╚══════════════════════════════════════════╝"
   echo ""
-  echo "لتحديث التطبيق المحمول، أنشئ ملف artifacts/mobile/.env:"
-  echo "EXPO_PUBLIC_API_URL=https://$DOMAIN/api"
+  echo "EXPO_PUBLIC_API_URL=https://$DOMAIN/api" > artifacts/mobile/.env
+  echo "✅ تم تحديث artifacts/mobile/.env تلقائياً"
+  echo "   EXPO_PUBLIC_API_URL=https://$DOMAIN/api"
 else
   echo ""
   echo "⚠️  لم يتم إنشاء دومين تلقائياً"
