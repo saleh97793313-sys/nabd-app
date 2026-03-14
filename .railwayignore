@@ -1,0 +1,9 @@
+artifacts/mobile
+artifacts/mockup-sandbox
+artifacts/clinic-dashboard
+lib/api-client-react
+lib/api-spec
+lib/api-zod
+.expo
+.local
+attached_assets
