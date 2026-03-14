@@ -119,7 +119,7 @@ React + Vite admin dashboard for clinics. Built with Tailwind CSS.
 
 - Build requires `BASE_PATH=/dashboard/` and `PORT=3000`
 - In production, served as static files by the API server at `/dashboard`
-- Default login: `Saleh97793313@gmail.com` / `nabd@2026`
+- Login credentials are configured via `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables
 - Clinic form has an interactive Leaflet/OpenStreetMap map picker for selecting clinic location (no API key needed)
 - Map picker supports search (Nominatim geocoding, scoped to Oman) and click-to-set-pin
 - Patients page shows "السجل" button per patient that opens a points history modal showing earned/deducted/balance summary and transaction list
@@ -131,20 +131,31 @@ React + Vite admin dashboard for clinics. Built with Tailwind CSS.
 ### Railway (recommended for 24/7 API)
 
 Config file: `railway.toml` at project root.
+GitHub repo: `saleh97793313-sys/nabd-app`
 
-1. Create account at [railway.app](https://railway.app)
-2. New Project > Deploy from GitHub repo (or use Railway CLI)
-3. Add environment variables:
-   - `DATABASE_URL` — copy from Replit Secrets (Database tab)
-   - `PORT` — Railway sets this automatically
+1. Create account at [railway.app](https://railway.app) (login with GitHub)
+2. New Project > Deploy from GitHub repo > select `nabd-app`
+3. Add a PostgreSQL database service (Railway provides free tier)
+4. Add **all** required environment variables in the Railway service settings:
+   - `DATABASE_URL` — auto-set if you add Railway's PostgreSQL plugin; otherwise copy from Replit Database tab
+   - `PORT` — Railway sets this automatically (do not set manually)
    - `NODE_ENV` — set to `production`
-   - `SESSION_SECRET` — any random string
-4. Railway auto-detects `railway.toml` and builds/deploys
-5. Copy the Railway URL and create `artifacts/mobile/.env`:
+   - `SESSION_SECRET` — any random secret string (e.g. `nabd-secret-2026-xyz`)
+   - `ADMIN_EMAIL` — admin login email for the dashboard (e.g. `Saleh97793313@gmail.com`)
+   - `ADMIN_PASSWORD` — admin login password for the dashboard (choose a strong password)
+5. Railway auto-detects `railway.toml` and builds/deploys
+6. Copy the Railway URL and create `artifacts/mobile/.env`:
    ```
    EXPO_PUBLIC_API_URL=https://YOUR-RAILWAY-HOST.up.railway.app/api
    ```
    **Important:** The URL must end with `/api` — without it, mobile API calls will fail. See `artifacts/mobile/.env.example` for reference.
+
+### Security Notes
+
+- Never commit credentials or API keys to the repository
+- Admin credentials (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) must be set as environment variables/secrets, never hardcoded
+- The `SESSION_SECRET` is used for HMAC-SHA256 signing of admin JWT tokens
+- After deployment, revoke any GitHub Personal Access Tokens that were shared or exposed
 
 ### Replit Deploy
 
