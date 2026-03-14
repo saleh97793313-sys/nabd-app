@@ -487,3 +487,45 @@ export const GetPatientsResponseItem = zod.object({
   lastVisit: zod.string().nullish(),
 });
 export const GetPatientsResponse = zod.array(GetPatientsResponseItem);
+
+/**
+ * @summary Get points transaction history for a patient
+ */
+export const GetPatientPointsLogParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetPatientPointsLogResponseItem = zod.object({
+  id: zod.number(),
+  patientId: zod.number(),
+  patientPhone: zod.string(),
+  type: zod.enum(["visit", "bonus", "manual", "registration"]),
+  points: zod.number(),
+  description: zod.string(),
+  clinicName: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const GetPatientPointsLogResponse = zod.array(
+  GetPatientPointsLogResponseItem,
+);
+
+/**
+ * @summary Get points log by patient phone number
+ */
+export const GetPointsLogByPhoneQueryParams = zod.object({
+  phone: zod.coerce.string(),
+});
+
+export const GetPointsLogByPhoneResponseItem = zod.object({
+  id: zod.number(),
+  patientId: zod.number(),
+  patientPhone: zod.string(),
+  type: zod.enum(["visit", "bonus", "manual", "registration"]),
+  points: zod.number(),
+  description: zod.string(),
+  clinicName: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const GetPointsLogByPhoneResponse = zod.array(
+  GetPointsLogByPhoneResponseItem,
+);

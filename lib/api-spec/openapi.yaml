@@ -428,6 +428,48 @@ paths:
                 items:
                   $ref: "#/components/schemas/Patient"
 
+  /patients/{id}/points-log:
+    get:
+      operationId: getPatientPointsLog
+      tags: [stats]
+      summary: Get points transaction history for a patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of points transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PointsLogEntry"
+
+  /points-log/by-phone:
+    get:
+      operationId: getPointsLogByPhone
+      tags: [stats]
+      summary: Get points log by patient phone number
+      parameters:
+        - name: phone
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of points transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PointsLogEntry"
+
 components:
   schemas:
     HealthStatus:
@@ -830,6 +872,35 @@ components:
         - clinicId
         - appointmentId
         - stars
+
+    PointsLogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        patientId:
+          type: integer
+        patientPhone:
+          type: string
+        type:
+          type: string
+          enum: [visit, bonus, manual, registration]
+        points:
+          type: integer
+        description:
+          type: string
+        clinicName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - patientId
+        - patientPhone
+        - type
+        - points
+        - description
+        - createdAt
 
     DashboardStats:
       type: object

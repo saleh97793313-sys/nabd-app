@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
-import { appointmentsTable, clinicsTable } from "@workspace/db";
+import { appointmentsTable, clinicsTable, patientsTable, pointsLogTable } from "@workspace/db";
 import {
   GetAppointmentsResponse,
   UpdateAppointmentStatusParams,
@@ -71,15 +71,50 @@ router.patch("/appointments/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+
+  const [existing] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, params.data.id));
+  if (!existing) {
+    res.status(404).json({ error: "Appointment not found" });
+    return;
+  }
+
   const [appointment] = await db
     .update(appointmentsTable)
     .set({ status: parsed.data.status })
     .where(eq(appointmentsTable.id, params.data.id))
     .returning();
-  if (!appointment) {
-    res.status(404).json({ error: "Appointment not found" });
-    return;
+
+  if (parsed.data.status === "completed" && existing.status !== "completed") {
+    const points = appointment.pointsEarned || 0;
+    if (points > 0) {
+      await db.transaction(async (tx) => {
+        const [patient] = await tx.select().from(patientsTable)
+          .where(eq(patientsTable.phone, appointment.patientPhone));
+        if (patient) {
+          const newPoints = patient.points + points;
+          const newLevel = newPoints >= 6000 ? "platinum" : newPoints >= 3000 ? "gold" : newPoints >= 1000 ? "silver" : "bronze";
+          await tx.update(patientsTable)
+            .set({
+              points: newPoints,
+              level: newLevel,
+              totalVisits: patient.totalVisits + 1,
+              lastVisit: new Date(),
+            })
+            .where(eq(patientsTable.id, patient.id));
+
+          await tx.insert(pointsLogTable).values({
+            patientId: patient.id,
+            patientPhone: patient.phone,
+            type: "visit",
+            points,
+            description: `زيارة ${appointment.clinicName} - ${appointment.serviceAr || appointment.service}`,
+            clinicName: appointment.clinicName,
+          });
+        }
+      });
+    }
   }
+
   res.json(UpdateAppointmentStatusResponse.parse(s(appointment)));
 });
 

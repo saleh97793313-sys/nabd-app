@@ -58,6 +58,7 @@
   "dependencies": {
     "@nkzw/create-context-hook": "^1.1.0",
     "expo-clipboard": "^8.0.8",
-    "react-native-maps": "1.20.1"
+    "react-native-maps": "1.20.1",
+    "react-native-qrcode-svg": "^6.3.21"
   }
 }

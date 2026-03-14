@@ -206,6 +206,28 @@ export interface RatingInput {
   comment?: string;
 }
 
+export type PointsLogEntryType =
+  (typeof PointsLogEntryType)[keyof typeof PointsLogEntryType];
+
+export const PointsLogEntryType = {
+  visit: "visit",
+  bonus: "bonus",
+  manual: "manual",
+  registration: "registration",
+} as const;
+
+export interface PointsLogEntry {
+  id: number;
+  patientId: number;
+  patientPhone: string;
+  type: PointsLogEntryType;
+  points: number;
+  description: string;
+  /** @nullable */
+  clinicName?: string | null;
+  createdAt: string;
+}
+
 export type DashboardStatsLevelDistribution = {
   bronze: number;
   silver: number;
@@ -273,4 +295,8 @@ export type CheckRatingParams = {
 
 export type CheckRating200 = {
   rated: boolean;
+};
+
+export type GetPointsLogByPhoneParams = {
+  phone: string;
 };

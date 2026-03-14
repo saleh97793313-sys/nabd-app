@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
-import { clinicsTable, offersTable, appointmentsTable, patientsTable } from "@workspace/db";
+import { clinicsTable, offersTable, appointmentsTable, patientsTable, pointsLogTable } from "@workspace/db";
 import { GetDashboardStatsResponse, GetPatientsResponse } from "@workspace/api-zod";
 
 function calcLevel(points: number): "bronze" | "silver" | "gold" | "platinum" {
@@ -131,7 +131,21 @@ router.patch("/patients/:id", async (req, res): Promise<void> => {
     updates.level = calcLevel(newPoints);
   }
 
-  const [updated] = await db.update(patientsTable).set(updates).where(eq(patientsTable.id, id)).returning();
+  const updated = await db.transaction(async (tx) => {
+    const [result] = await tx.update(patientsTable).set(updates).where(eq(patientsTable.id, id)).returning();
+    const pointsDiff = result.points - current.points;
+    if (pointsDiff !== 0) {
+      await tx.insert(pointsLogTable).values({
+        patientId: current.id,
+        patientPhone: current.phone,
+        type: "manual",
+        points: pointsDiff,
+        description: pointsDiff > 0 ? "إضافة نقاط يدوية من لوحة التحكم" : "خصم نقاط يدوي من لوحة التحكم",
+      });
+    }
+    return result;
+  });
+
   res.json(s(updated));
 });
 

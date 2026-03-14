@@ -1,8 +1,9 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -12,6 +13,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import QRCode from "react-native-qrcode-svg";
 
 import Colors from "@/constants/colors";
 import { useAppContext } from "@/context/AppContext";
@@ -26,12 +28,12 @@ const LEVEL_CONFIG = {
 };
 
 const MENU_ITEMS = [
-  { icon: "heart", label: "حالاتي الصحية", value: "", arrow: true },
-  { icon: "star", label: "سجل النقاط", value: "", arrow: true },
-  { icon: "shield", label: "التأمين الصحي", value: "", arrow: true },
-  { icon: "bell", label: "الإشعارات", value: "", arrow: true },
-  { icon: "help-circle", label: "المساعدة", value: "", arrow: true },
-  { icon: "info", label: "عن التطبيق", value: "1.0.0", arrow: false },
+  { icon: "heart", label: "حالاتي الصحية", value: "", arrow: true, route: "" },
+  { icon: "star", label: "سجل النقاط", value: "", arrow: true, route: "/points-history" },
+  { icon: "shield", label: "التأمين الصحي", value: "", arrow: true, route: "" },
+  { icon: "bell", label: "الإشعارات", value: "", arrow: true, route: "/notifications" },
+  { icon: "help-circle", label: "المساعدة", value: "", arrow: true, route: "" },
+  { icon: "info", label: "عن التطبيق", value: "1.0.0", arrow: false, route: "" },
 ];
 
 function GuestProfile({ colors }: { colors: any }) {
@@ -128,12 +130,86 @@ function GuestProfile({ colors }: { colors: any }) {
   );
 }
 
+function LoyaltyCard({ patient, colors, onQRPress }: { patient: any; colors: any; onQRPress: () => void }) {
+  const levelConfig = LEVEL_CONFIG[patient.level];
+  const gradientColors: Record<string, string[]> = {
+    bronze: ["#CD7F32", "#A0522D"],
+    silver: ["#A8A9AD", "#708090"],
+    gold: ["#FFB800", "#DAA520"],
+    platinum: ["#7C3AED", "#5B21B6"],
+  };
+  const [c1] = gradientColors[patient.level] || gradientColors.bronze;
+
+  return (
+    <View style={[styles.loyaltyCard, { backgroundColor: c1 }]}>
+      <View style={styles.cardPattern}>
+        <View style={[styles.patternCircle, styles.patternCircle1]} />
+        <View style={[styles.patternCircle, styles.patternCircle2]} />
+      </View>
+      <View style={styles.cardContent}>
+        <View style={styles.cardTopRow}>
+          <Text style={styles.cardBrand}>نبض</Text>
+          <Text style={styles.cardLevelBadge}>{levelConfig.label}</Text>
+        </View>
+
+        <View style={styles.cardMiddle}>
+          <View style={styles.cardInfo}>
+            <Text style={styles.cardName}>{patient.name}</Text>
+            <Text style={styles.cardPhone}>{patient.phone}</Text>
+            <View style={styles.cardPointsRow}>
+              <Feather name="award" size={14} color="rgba(255,255,255,0.9)" />
+              <Text style={styles.cardPoints}>{patient.points.toLocaleString()} نقطة</Text>
+            </View>
+          </View>
+
+          <Pressable onPress={onQRPress} style={styles.cardQR}>
+            <View style={styles.qrContainer}>
+              <QRCode
+                value={patient.phone || "nabd"}
+                size={70}
+                backgroundColor="white"
+                color="#1A3A5C"
+              />
+            </View>
+          </Pressable>
+        </View>
+
+        <View style={styles.cardBottom}>
+          <Text style={styles.cardMember}>عضو منذ {patient.joinDate}</Text>
+          <Text style={styles.cardFooter}>بطاقة الولاء الرقمية</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function QRFullScreen({ phone, visible, onClose, colors }: { phone: string; visible: boolean; onClose: () => void; colors: any }) {
+  return (
+    <Modal visible={visible} animationType="fade" transparent statusBarTranslucent>
+      <Pressable style={styles.qrOverlay} onPress={onClose}>
+        <View style={styles.qrModal}>
+          <Text style={styles.qrModalTitle}>رمز QR الخاص بك</Text>
+          <View style={styles.qrModalContainer}>
+            <QRCode value={phone || "nabd"} size={200} backgroundColor="white" color="#1A3A5C" />
+          </View>
+          <Text style={styles.qrModalPhone}>{phone}</Text>
+          <Text style={styles.qrModalHint}>اعرض هذا الرمز عند الاستقبال</Text>
+          <Pressable onPress={onClose} style={styles.qrCloseBtn}>
+            <Text style={styles.qrCloseBtnText}>إغلاق</Text>
+          </Pressable>
+        </View>
+      </Pressable>
+    </Modal>
+  );
+}
+
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
   const { patient, logout, isGuest } = useAppContext();
+  const [qrVisible, setQrVisible] = useState(false);
 
   if (isGuest) {
     return <GuestProfile colors={colors} />;
@@ -181,6 +257,11 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
+        <Text style={[styles.cardTitle, { color: colors.text, marginBottom: 12 }]}>بطاقتي</Text>
+        <LoyaltyCard patient={patient} colors={colors} onQRPress={() => setQrVisible(true)} />
+      </View>
+
       <View style={[styles.progressCard, { backgroundColor: colors.backgroundCard }]}>
         <View style={styles.progressHeader}>
           <Text style={[styles.progressTitle, { color: colors.text }]}>
@@ -225,6 +306,7 @@ export default function ProfileScreen() {
         {MENU_ITEMS.map((item, index) => (
           <Pressable
             key={index}
+            onPress={() => item.route ? router.push(item.route as any) : undefined}
             style={({ pressed }) => [
               styles.menuItem,
               pressed && { opacity: 0.7 },
@@ -259,6 +341,13 @@ export default function ProfileScreen() {
         <Feather name="log-out" size={18} color={colors.danger} />
         <Text style={[styles.logoutText, { color: colors.danger }]}>تسجيل الخروج</Text>
       </Pressable>
+
+      <QRFullScreen
+        phone={patient.phone}
+        visible={qrVisible}
+        onClose={() => setQrVisible(false)}
+        colors={colors}
+      />
     </ScrollView>
   );
 }
@@ -485,4 +574,154 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   logoutText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  loyaltyCard: {
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+    minHeight: 190,
+  },
+  cardPattern: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  patternCircle: {
+    position: "absolute",
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  patternCircle1: { width: 200, height: 200, top: -60, left: -40 },
+  patternCircle2: { width: 150, height: 150, bottom: -50, right: -30 },
+  cardContent: {
+    flex: 1,
+    padding: 20,
+    justifyContent: "space-between",
+  },
+  cardTopRow: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  cardBrand: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+  },
+  cardLevelBadge: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    color: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  cardMiddle: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  cardInfo: { flex: 1, gap: 4 },
+  cardName: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+    textAlign: "right",
+  },
+  cardPhone: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.8)",
+    textAlign: "right",
+  },
+  cardPointsRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
+  },
+  cardPoints: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: "rgba(255,255,255,0.9)",
+  },
+  cardQR: { marginLeft: 16 },
+  qrContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 6,
+  },
+  cardBottom: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 12,
+  },
+  cardMember: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.6)",
+  },
+  cardFooter: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.6)",
+  },
+  qrOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  qrModal: {
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 32,
+    alignItems: "center",
+    gap: 16,
+    width: 300,
+  },
+  qrModalTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: "#1A3A5C",
+  },
+  qrModalContainer: {
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#00C89630",
+  },
+  qrModalPhone: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    color: "#1A3A5C",
+  },
+  qrModalHint: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: "#666",
+    textAlign: "center",
+  },
+  qrCloseBtn: {
+    backgroundColor: "#00C896",
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 14,
+    marginTop: 4,
+  },
+  qrCloseBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+  },
 });

@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useGetPatients } from "@workspace/api-client-react";
+import { useState, useEffect } from "react";
+import { useGetPatients, useGetPatientPointsLog } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { Search, ShieldAlert, Trophy, Plus, Minus, X, Check, Users, Star, Edit3 } from "lucide-react";
+import { Search, ShieldAlert, Trophy, Plus, Minus, X, Check, Users, Star, Edit3, Clock, Calendar, Gift, UserPlus, ChevronLeft, History } from "lucide-react";
 import { clsx } from "clsx";
 
 const LEVEL_COLORS = {
@@ -192,11 +192,103 @@ function PointsModal({ patient, onClose }: { patient: Patient; onClose: () => vo
   );
 }
 
+const TYPE_CONFIG: Record<string, { icon: typeof Calendar; color: string; label: string }> = {
+  visit: { icon: Calendar, color: "text-emerald-500", label: "زيارة" },
+  bonus: { icon: Gift, color: "text-amber-500", label: "مكافأة" },
+  manual: { icon: Edit3, color: "text-purple-500", label: "يدوي" },
+  registration: { icon: UserPlus, color: "text-blue-500", label: "تسجيل" },
+};
+
+function PointsLogPanel({ patient, onClose }: { patient: Patient; onClose: () => void }) {
+  const { data: logs = [], isLoading } = useGetPatientPointsLog(patient.id);
+
+  const totalEarned = logs.filter((l: any) => l.points > 0).reduce((s: number, l: any) => s + l.points, 0);
+  const totalDeducted = logs.filter((l: any) => l.points < 0).reduce((s: number, l: any) => s + Math.abs(l.points), 0);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg my-8">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground">
+            <X size={18} />
+          </button>
+          <div className="text-right">
+            <h3 className="font-bold text-lg">سجل نقاط المريض</h3>
+            <p className="text-sm text-muted-foreground">{patient.name} • {patient.phone}</p>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="bg-emerald-500/10 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-emerald-500">+{totalEarned.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">مكتسب</p>
+            </div>
+            <div className="bg-destructive/10 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-destructive">-{totalDeducted.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">مخصوم</p>
+            </div>
+            <div className="bg-primary/10 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-primary">{patient.points.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">الرصيد</p>
+            </div>
+          </div>
+
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground">جاري التحميل...</div>
+            ) : logs.length === 0 ? (
+              <div className="text-center py-8">
+                <History size={40} className="text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground">لا توجد عمليات بعد</p>
+              </div>
+            ) : (
+              logs.map((entry: any) => {
+                const cfg = TYPE_CONFIG[entry.type] || TYPE_CONFIG.visit;
+                const Icon = cfg.icon;
+                const isPositive = entry.points > 0;
+                return (
+                  <div key={entry.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className={clsx(
+                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                      isPositive ? "bg-emerald-500/10" : "bg-destructive/10"
+                    )}>
+                      <Icon size={18} className={cfg.color} />
+                    </div>
+                    <div className="flex-1 min-w-0 text-right">
+                      <p className="font-semibold text-sm truncate">{entry.description}</p>
+                      <div className="flex items-center gap-2 mt-0.5 justify-end">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(entry.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className={clsx("text-xs px-2 py-0.5 rounded-md font-bold", cfg.color, isPositive ? "bg-emerald-500/10" : "bg-destructive/10")}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={clsx(
+                      "font-bold text-sm px-3 py-1.5 rounded-lg shrink-0",
+                      isPositive ? "text-emerald-500 bg-emerald-500/10" : "text-destructive bg-destructive/10"
+                    )}>
+                      {isPositive ? "+" : ""}{entry.points}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PatientsPage() {
   const { data: patients = [], isLoading } = useGetPatients();
   const [searchTerm, setSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [logPatient, setLogPatient] = useState<Patient | null>(null);
 
   const filtered = patients.filter(p => {
     const matchSearch = p.name.includes(searchTerm) || p.phone.includes(searchTerm) || p.email.includes(searchTerm);
@@ -309,13 +401,22 @@ export default function PatientsPage() {
                         {new Date(patient.joinedAt).toLocaleDateString('ar-EG')}
                       </td>
                       <td className="p-4 px-6">
-                        <button
-                          onClick={() => setSelectedPatient(patient as Patient)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold text-sm transition-all group"
-                        >
-                          <Edit3 size={15} className="group-hover:scale-110 transition-transform" />
-                          تعديل النقاط
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedPatient(patient as Patient)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold text-sm transition-all group"
+                          >
+                            <Edit3 size={15} className="group-hover:scale-110 transition-transform" />
+                            تعديل النقاط
+                          </button>
+                          <button
+                            onClick={() => setLogPatient(patient as Patient)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white font-bold text-sm transition-all group"
+                          >
+                            <History size={15} className="group-hover:scale-110 transition-transform" />
+                            السجل
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -328,6 +429,9 @@ export default function PatientsPage() {
 
       {selectedPatient && (
         <PointsModal patient={selectedPatient} onClose={() => setSelectedPatient(null)} />
+      )}
+      {logPatient && (
+        <PointsLogPanel patient={logPatient} onClose={() => setLogPatient(null)} />
       )}
     </Layout>
   );

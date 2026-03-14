@@ -26,10 +26,12 @@ import type {
   Discount,
   DiscountInput,
   ErrorResponse,
+  GetPointsLogByPhoneParams,
   HealthStatus,
   Offer,
   OfferInput,
   Patient,
+  PointsLogEntry,
   Rating,
   RatingInput,
   UpdateAppointmentStatusBody,
@@ -1848,6 +1850,193 @@ export function useGetPatients<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetPatientsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get points transaction history for a patient
+ */
+export const getGetPatientPointsLogUrl = (id: number) => {
+  return `/api/patients/${id}/points-log`;
+};
+
+export const getPatientPointsLog = async (
+  id: number,
+  options?: RequestInit,
+): Promise<PointsLogEntry[]> => {
+  return customFetch<PointsLogEntry[]>(getGetPatientPointsLogUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPatientPointsLogQueryKey = (id: number) => {
+  return [`/api/patients/${id}/points-log`] as const;
+};
+
+export const getGetPatientPointsLogQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPatientPointsLog>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPatientPointsLog>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPatientPointsLogQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPatientPointsLog>>
+  > = ({ signal }) => getPatientPointsLog(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPatientPointsLog>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPatientPointsLogQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPatientPointsLog>>
+>;
+export type GetPatientPointsLogQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get points transaction history for a patient
+ */
+
+export function useGetPatientPointsLog<
+  TData = Awaited<ReturnType<typeof getPatientPointsLog>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPatientPointsLog>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPatientPointsLogQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get points log by patient phone number
+ */
+export const getGetPointsLogByPhoneUrl = (
+  params: GetPointsLogByPhoneParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/points-log/by-phone?${stringifiedParams}`
+    : `/api/points-log/by-phone`;
+};
+
+export const getPointsLogByPhone = async (
+  params: GetPointsLogByPhoneParams,
+  options?: RequestInit,
+): Promise<PointsLogEntry[]> => {
+  return customFetch<PointsLogEntry[]>(getGetPointsLogByPhoneUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPointsLogByPhoneQueryKey = (
+  params?: GetPointsLogByPhoneParams,
+) => {
+  return [`/api/points-log/by-phone`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetPointsLogByPhoneQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPointsLogByPhone>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetPointsLogByPhoneParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPointsLogByPhone>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPointsLogByPhoneQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPointsLogByPhone>>
+  > = ({ signal }) =>
+    getPointsLogByPhone(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPointsLogByPhone>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPointsLogByPhoneQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPointsLogByPhone>>
+>;
+export type GetPointsLogByPhoneQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get points log by patient phone number
+ */
+
+export function useGetPointsLogByPhone<
+  TData = Awaited<ReturnType<typeof getPointsLogByPhone>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetPointsLogByPhoneParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPointsLogByPhone>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPointsLogByPhoneQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

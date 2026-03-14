@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db } from "@workspace/db";
-import { patientsTable } from "@workspace/db/schema";
+import { patientsTable, pointsLogTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 
 const authRouter = Router();
@@ -21,11 +21,22 @@ authRouter.post("/auth/register", async (req, res) => {
       return res.status(409).json({ error: "البريد الإلكتروني مستخدم بالفعل" });
     }
     const passwordHash = await bcrypt.hash(password, 10);
-    const [patient] = await db
-      .insert(patientsTable)
-      .values({ name, email, phone, passwordHash, level: "bronze", points: 0, totalVisits: 0 })
-      .returning();
-    const { passwordHash: _ph, ...safe } = patient;
+    const result = await db.transaction(async (tx) => {
+      const [patient] = await tx
+        .insert(patientsTable)
+        .values({ name, email, phone, passwordHash, level: "bronze", points: 100, totalVisits: 0 })
+        .returning();
+      await tx.insert(pointsLogTable).values({
+        patientId: patient.id,
+        patientPhone: patient.phone,
+        type: "registration",
+        points: 100,
+        description: "مكافأة التسجيل في نبض",
+      });
+      return patient;
+    });
+
+    const { passwordHash: _ph, ...safe } = result;
     return res.status(201).json(safe);
   } catch (e) {
     console.error("Register error:", e);
