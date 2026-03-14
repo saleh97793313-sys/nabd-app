@@ -1,6 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
+
+type FeatherIconName = React.ComponentProps<typeof Feather>["name"];
 import {
   ActivityIndicator,
   Platform,
@@ -34,7 +36,7 @@ function getApiBase(): string {
   return "/api";
 }
 
-const TYPE_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
+const TYPE_CONFIG: Record<string, { icon: FeatherIconName; color: string; label: string }> = {
   visit: { icon: "calendar", color: "#00C896", label: "زيارة" },
   bonus: { icon: "gift", color: "#FFB800", label: "مكافأة" },
   manual: { icon: "edit-3", color: "#7C3AED", label: "يدوي" },
@@ -152,7 +154,7 @@ export default function PointsHistoryScreen() {
                     )}
                     <View style={styles.entryMeta}>
                       <View style={[styles.typeBadge, { backgroundColor: cfg.color + "15" }]}>
-                        <Feather name={cfg.icon as any} size={10} color={cfg.color} />
+                        <Feather name={cfg.icon} size={10} color={cfg.color} />
                         <Text style={[styles.typeLabel, { color: cfg.color }]}>{cfg.label}</Text>
                       </View>
                       <Text style={[styles.entryDate, { color: colors.textMuted }]}>{dateStr}</Text>
@@ -160,7 +162,7 @@ export default function PointsHistoryScreen() {
                   </View>
 
                   <View style={[styles.entryIcon, { backgroundColor: cfg.color + "15" }]}>
-                    <Feather name={cfg.icon as any} size={18} color={cfg.color} />
+                    <Feather name={cfg.icon} size={18} color={cfg.color} />
                   </View>
                 </View>
               </View>

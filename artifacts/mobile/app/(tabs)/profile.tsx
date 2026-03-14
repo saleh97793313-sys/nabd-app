@@ -20,6 +20,9 @@ import { useAppContext } from "@/context/AppContext";
 import { LevelBadge } from "@/components/LevelBadge";
 import { ProgressBar } from "@/components/ProgressBar";
 
+type FeatherIconName = React.ComponentProps<typeof Feather>["name"];
+type ThemeColors = typeof Colors.light;
+
 const LEVEL_CONFIG = {
   bronze: { label: "برونزي", nextLabel: "فضي", current: 0, next: 1000, color: "#CD7F32" },
   silver: { label: "فضي", nextLabel: "ذهبي", current: 1000, next: 3000, color: "#A8A9AD" },
@@ -27,7 +30,7 @@ const LEVEL_CONFIG = {
   platinum: { label: "بلاتيني", nextLabel: "القمة!", current: 6000, next: 6000, color: "#00C8FF" },
 };
 
-const MENU_ITEMS = [
+const MENU_ITEMS: { icon: FeatherIconName; label: string; value: string; arrow: boolean; route: string }[] = [
   { icon: "heart", label: "حالاتي الصحية", value: "", arrow: true, route: "" },
   { icon: "star", label: "سجل النقاط", value: "", arrow: true, route: "/points-history" },
   { icon: "shield", label: "التأمين الصحي", value: "", arrow: true, route: "" },
@@ -36,7 +39,7 @@ const MENU_ITEMS = [
   { icon: "info", label: "عن التطبيق", value: "1.0.0", arrow: false, route: "" },
 ];
 
-function GuestProfile({ colors }: { colors: any }) {
+function GuestProfile({ colors }: { colors: ThemeColors }) {
   const insets = useSafeAreaInsets();
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : insets.bottom;
@@ -64,15 +67,15 @@ function GuestProfile({ colors }: { colors: any }) {
 
       <View style={[styles.guestBenefitsCard, { backgroundColor: colors.backgroundCard }]}>
         <Text style={[styles.benefitsTitle, { color: colors.text }]}>مزايا التسجيل</Text>
-        {[
-          { icon: "award", text: "اجمع نقاط على كل زيارة", color: "#FFB800" },
-          { icon: "tag", text: "احصل على خصومات حصرية", color: "#00C896" },
-          { icon: "calendar", text: "احجز مواعيدك بسهولة", color: "#7C3AED" },
-          { icon: "trending-up", text: "تتبع تاريخك الصحي", color: "#1A3A5C" },
-        ].map((b, i) => (
+        {([
+          { icon: "award" as FeatherIconName, text: "اجمع نقاط على كل زيارة", color: "#FFB800" },
+          { icon: "tag" as FeatherIconName, text: "احصل على خصومات حصرية", color: "#00C896" },
+          { icon: "calendar" as FeatherIconName, text: "احجز مواعيدك بسهولة", color: "#7C3AED" },
+          { icon: "trending-up" as FeatherIconName, text: "تتبع تاريخك الصحي", color: "#1A3A5C" },
+        ]).map((b, i) => (
           <View key={i} style={styles.benefitRow}>
             <View style={[styles.benefitIcon, { backgroundColor: b.color + "15" }]}>
-              <Feather name={b.icon as any} size={18} color={b.color} />
+              <Feather name={b.icon} size={18} color={b.color} />
             </View>
             <Text style={[styles.benefitText, { color: colors.text }]}>{b.text}</Text>
           </View>
@@ -120,7 +123,7 @@ function GuestProfile({ colors }: { colors: any }) {
             <View style={styles.menuRight}>
               <Text style={[styles.menuLabel, { color: colors.text }]}>{item.label}</Text>
               <View style={[styles.menuIcon, { backgroundColor: colors.tint + "15" }]}>
-                <Feather name={item.icon as any} size={16} color={colors.tint} />
+                <Feather name={item.icon} size={16} color={colors.tint} />
               </View>
             </View>
           </Pressable>
@@ -130,7 +133,15 @@ function GuestProfile({ colors }: { colors: any }) {
   );
 }
 
-function LoyaltyCard({ patient, colors, onQRPress }: { patient: any; colors: any; onQRPress: () => void }) {
+interface PatientData {
+  name: string;
+  phone: string;
+  points: number;
+  level: keyof typeof LEVEL_CONFIG;
+  joinDate: string;
+}
+
+function LoyaltyCard({ patient, colors, onQRPress }: { patient: PatientData; colors: ThemeColors; onQRPress: () => void }) {
   const levelConfig = LEVEL_CONFIG[patient.level];
   const gradientColors: Record<string, string[]> = {
     bronze: ["#CD7F32", "#A0522D"],
@@ -183,7 +194,7 @@ function LoyaltyCard({ patient, colors, onQRPress }: { patient: any; colors: any
   );
 }
 
-function QRFullScreen({ phone, visible, onClose, colors }: { phone: string; visible: boolean; onClose: () => void; colors: any }) {
+function QRFullScreen({ phone, visible, onClose }: { phone: string; visible: boolean; onClose: () => void }) {
   return (
     <Modal visible={visible} animationType="fade" transparent statusBarTranslucent>
       <Pressable style={styles.qrOverlay} onPress={onClose}>
@@ -306,7 +317,7 @@ export default function ProfileScreen() {
         {MENU_ITEMS.map((item, index) => (
           <Pressable
             key={index}
-            onPress={() => item.route ? router.push(item.route as any) : undefined}
+            onPress={() => item.route ? router.push(item.route as `/${string}`) : undefined}
             style={({ pressed }) => [
               styles.menuItem,
               pressed && { opacity: 0.7 },
@@ -320,7 +331,7 @@ export default function ProfileScreen() {
             <View style={styles.menuRight}>
               <Text style={[styles.menuLabel, { color: colors.text }]}>{item.label}</Text>
               <View style={[styles.menuIcon, { backgroundColor: colors.tint + "15" }]}>
-                <Feather name={item.icon as any} size={16} color={colors.tint} />
+                <Feather name={item.icon} size={16} color={colors.tint} />
               </View>
             </View>
           </Pressable>
@@ -346,7 +357,6 @@ export default function ProfileScreen() {
         phone={patient.phone}
         visible={qrVisible}
         onClose={() => setQrVisible(false)}
-        colors={colors}
       />
     </ScrollView>
   );

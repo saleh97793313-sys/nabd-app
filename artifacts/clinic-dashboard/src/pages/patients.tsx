@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGetPatients, useGetPatientPointsLog } from "@workspace/api-client-react";
+import type { PointsLogEntry } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
-import { Search, ShieldAlert, Trophy, Plus, Minus, X, Check, Users, Star, Edit3, Clock, Calendar, Gift, UserPlus, ChevronLeft, History } from "lucide-react";
+import { Search, ShieldAlert, Trophy, Plus, Minus, X, Check, Users, Star, Edit3, Calendar, Gift, UserPlus, History } from "lucide-react";
 import { clsx } from "clsx";
 
 const LEVEL_COLORS = {
@@ -202,14 +203,14 @@ const TYPE_CONFIG: Record<string, { icon: typeof Calendar; color: string; label:
 function PointsLogPanel({ patient, onClose }: { patient: Patient; onClose: () => void }) {
   const { data: logs = [], isLoading } = useGetPatientPointsLog(patient.id);
 
-  const totalEarned = logs.filter((l: any) => l.points > 0).reduce((s: number, l: any) => s + l.points, 0);
-  const totalDeducted = logs.filter((l: any) => l.points < 0).reduce((s: number, l: any) => s + Math.abs(l.points), 0);
+  const totalEarned = logs.filter((l: PointsLogEntry) => l.points > 0).reduce((s: number, l: PointsLogEntry) => s + l.points, 0);
+  const totalDeducted = logs.filter((l: PointsLogEntry) => l.points < 0).reduce((s: number, l: PointsLogEntry) => s + Math.abs(l.points), 0);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg my-8">
         <div className="flex items-center justify-between p-6 border-b border-border">
-          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground">
+          <button onClick={onClose} aria-label="إغلاق" className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground">
             <X size={18} />
           </button>
           <div className="text-right">
@@ -243,7 +244,7 @@ function PointsLogPanel({ patient, onClose }: { patient: Patient; onClose: () =>
                 <p className="text-muted-foreground">لا توجد عمليات بعد</p>
               </div>
             ) : (
-              logs.map((entry: any) => {
+              logs.map((entry: PointsLogEntry) => {
                 const cfg = TYPE_CONFIG[entry.type] || TYPE_CONFIG.visit;
                 const Icon = cfg.icon;
                 const isPositive = entry.points > 0;
@@ -369,7 +370,7 @@ export default function PatientsPage() {
                   <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">لا يوجد مرضى مطابقين</td></tr>
                 ) : (
                   filtered.map((patient) => (
-                    <tr key={patient.id} className="hover:bg-muted/30 transition-colors">
+                    <tr key={patient.id} onClick={() => setLogPatient(patient as Patient)} className="hover:bg-muted/30 transition-colors cursor-pointer">
                       <td className="p-4 px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
@@ -401,22 +402,13 @@ export default function PatientsPage() {
                         {new Date(patient.joinedAt).toLocaleDateString('ar-EG')}
                       </td>
                       <td className="p-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setSelectedPatient(patient as Patient)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold text-sm transition-all group"
-                          >
-                            <Edit3 size={15} className="group-hover:scale-110 transition-transform" />
-                            تعديل النقاط
-                          </button>
-                          <button
-                            onClick={() => setLogPatient(patient as Patient)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white font-bold text-sm transition-all group"
-                          >
-                            <History size={15} className="group-hover:scale-110 transition-transform" />
-                            السجل
-                          </button>
-                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedPatient(patient as Patient); }}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold text-sm transition-all group"
+                        >
+                          <Edit3 size={15} className="group-hover:scale-110 transition-transform" />
+                          تعديل النقاط
+                        </button>
                       </td>
                     </tr>
                   ))

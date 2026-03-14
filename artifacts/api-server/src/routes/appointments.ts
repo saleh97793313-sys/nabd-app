@@ -1,16 +1,17 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
-import { appointmentsTable, clinicsTable, patientsTable, pointsLogTable } from "@workspace/db";
+import { appointmentsTable, clinicsTable } from "@workspace/db";
 import {
   GetAppointmentsResponse,
   UpdateAppointmentStatusParams,
   UpdateAppointmentStatusBody,
   UpdateAppointmentStatusResponse,
 } from "@workspace/api-zod";
+import { awardPointsByPhone } from "./pointsLog";
 
-function s(obj: Record<string, any>) {
+function s(obj: Record<string, unknown>) {
   return Object.fromEntries(
     Object.entries(obj).map(([k, v]) => [k, v instanceof Date ? v.toISOString() : v])
   );
@@ -87,55 +88,21 @@ router.patch("/appointments/:id", async (req, res): Promise<void> => {
   if (parsed.data.status === "completed" && existing.status !== "completed") {
     const points = appointment.pointsEarned || 0;
     if (points > 0) {
-      await db.transaction(async (tx) => {
-        const [patient] = await tx.select().from(patientsTable)
-          .where(eq(patientsTable.phone, appointment.patientPhone));
-        if (patient) {
-          const newPoints = patient.points + points;
-          const newLevel = newPoints >= 6000 ? "platinum" : newPoints >= 3000 ? "gold" : newPoints >= 1000 ? "silver" : "bronze";
-          await tx.update(patientsTable)
-            .set({
-              points: newPoints,
-              level: newLevel,
-              totalVisits: patient.totalVisits + 1,
-              lastVisit: new Date(),
-            })
-            .where(eq(patientsTable.id, patient.id));
-
-          await tx.insert(pointsLogTable).values({
-            patientId: patient.id,
-            patientPhone: patient.phone,
-            type: "visit",
-            points,
-            description: `زيارة ${appointment.clinicName} - ${appointment.serviceAr || appointment.service}`,
-            clinicName: appointment.clinicName,
-          });
-        }
+      await awardPointsByPhone(appointment.patientPhone, {
+        points,
+        type: "visit",
+        description: `زيارة ${appointment.clinicName} - ${appointment.serviceAr || appointment.service}`,
+        clinicName: appointment.clinicName,
       });
     }
   }
 
   if (parsed.data.status === "confirmed" && existing.status === "pending") {
-    const bonusPoints = 10;
-    await db.transaction(async (tx) => {
-      const [patient] = await tx.select().from(patientsTable)
-        .where(eq(patientsTable.phone, appointment.patientPhone));
-      if (patient) {
-        const newPoints = patient.points + bonusPoints;
-        const newLevel = newPoints >= 6000 ? "platinum" : newPoints >= 3000 ? "gold" : newPoints >= 1000 ? "silver" : "bronze";
-        await tx.update(patientsTable)
-          .set({ points: newPoints, level: newLevel })
-          .where(eq(patientsTable.id, patient.id));
-
-        await tx.insert(pointsLogTable).values({
-          patientId: patient.id,
-          patientPhone: patient.phone,
-          type: "bonus",
-          points: bonusPoints,
-          description: `تأكيد موعد في ${appointment.clinicName}`,
-          clinicName: appointment.clinicName,
-        });
-      }
+    await awardPointsByPhone(appointment.patientPhone, {
+      points: 10,
+      type: "bonus",
+      description: `تأكيد موعد في ${appointment.clinicName}`,
+      clinicName: appointment.clinicName,
     });
   }
 
