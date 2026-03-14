@@ -6,6 +6,7 @@ import appointmentsRouter from "./appointments";
 import discountsRouter from "./discounts";
 import statsRouter from "./stats";
 import authRouter from "./auth";
+import ratingsRouter from "./ratings";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(offersRouter);
 router.use(appointmentsRouter);
 router.use(discountsRouter);
 router.use(statsRouter);
+router.use(ratingsRouter);
 
 export default router;

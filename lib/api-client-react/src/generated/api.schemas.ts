@@ -182,6 +182,29 @@ export interface DiscountInput {
   maxUsage: number;
 }
 
+export interface Rating {
+  id: number;
+  patientPhone: string;
+  clinicId: number;
+  appointmentId: number;
+  stars: number;
+  /** @nullable */
+  comment?: string | null;
+  createdAt: string;
+}
+
+export interface RatingInput {
+  patientPhone: string;
+  clinicId: number;
+  appointmentId: number;
+  /**
+   * @minimum 1
+   * @maximum 5
+   */
+  stars: number;
+  comment?: string;
+}
+
 export type DashboardStatsLevelDistribution = {
   bronze: number;
   silver: number;
@@ -241,4 +264,12 @@ export const UpdateAppointmentStatusBodyStatus = {
 
 export type UpdateAppointmentStatusBody = {
   status: UpdateAppointmentStatusBodyStatus;
+};
+
+export type CheckRatingParams = {
+  appointmentId: number;
+};
+
+export type CheckRating200 = {
+  rated: boolean;
 };

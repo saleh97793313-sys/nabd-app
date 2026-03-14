@@ -8,6 +8,8 @@
 
 export * from "./appointment";
 export * from "./appointmentStatus";
+export * from "./checkRating200";
+export * from "./checkRatingParams";
 export * from "./clinic";
 export * from "./clinicInput";
 export * from "./dashboardStats";
@@ -23,5 +25,7 @@ export * from "./offer";
 export * from "./offerInput";
 export * from "./patient";
 export * from "./patientLevel";
+export * from "./rating";
+export * from "./ratingInput";
 export * from "./updateAppointmentStatusBody";
 export * from "./updateAppointmentStatusBodyStatus";

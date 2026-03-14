@@ -18,6 +18,8 @@ import type {
 
 import type {
   Appointment,
+  CheckRating200,
+  CheckRatingParams,
   Clinic,
   ClinicInput,
   DashboardStats,
@@ -28,6 +30,8 @@ import type {
   Offer,
   OfferInput,
   Patient,
+  Rating,
+  RatingInput,
   UpdateAppointmentStatusBody,
 } from "./api.schemas";
 
@@ -1434,6 +1438,273 @@ export const useDeleteDiscount = <
 > => {
   return useMutation(getDeleteDiscountMutationOptions(options));
 };
+
+/**
+ * @summary Submit a clinic rating
+ */
+export const getCreateRatingUrl = () => {
+  return `/api/ratings`;
+};
+
+export const createRating = async (
+  ratingInput: RatingInput,
+  options?: RequestInit,
+): Promise<Rating> => {
+  return customFetch<Rating>(getCreateRatingUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(ratingInput),
+  });
+};
+
+export const getCreateRatingMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createRating>>,
+    TError,
+    { data: BodyType<RatingInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createRating>>,
+  TError,
+  { data: BodyType<RatingInput> },
+  TContext
+> => {
+  const mutationKey = ["createRating"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createRating>>,
+    { data: BodyType<RatingInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createRating(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateRatingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createRating>>
+>;
+export type CreateRatingMutationBody = BodyType<RatingInput>;
+export type CreateRatingMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Submit a clinic rating
+ */
+export const useCreateRating = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createRating>>,
+    TError,
+    { data: BodyType<RatingInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createRating>>,
+  TError,
+  { data: BodyType<RatingInput> },
+  TContext
+> => {
+  return useMutation(getCreateRatingMutationOptions(options));
+};
+
+/**
+ * @summary Get ratings for a clinic
+ */
+export const getGetClinicRatingsUrl = (id: number) => {
+  return `/api/clinics/${id}/ratings`;
+};
+
+export const getClinicRatings = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Rating[]> => {
+  return customFetch<Rating[]>(getGetClinicRatingsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetClinicRatingsQueryKey = (id: number) => {
+  return [`/api/clinics/${id}/ratings`] as const;
+};
+
+export const getGetClinicRatingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getClinicRatings>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getClinicRatings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetClinicRatingsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getClinicRatings>>
+  > = ({ signal }) => getClinicRatings(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getClinicRatings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetClinicRatingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getClinicRatings>>
+>;
+export type GetClinicRatingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get ratings for a clinic
+ */
+
+export function useGetClinicRatings<
+  TData = Awaited<ReturnType<typeof getClinicRatings>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getClinicRatings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetClinicRatingsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Check if appointment has been rated
+ */
+export const getCheckRatingUrl = (params: CheckRatingParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/ratings/check?${stringifiedParams}`
+    : `/api/ratings/check`;
+};
+
+export const checkRating = async (
+  params: CheckRatingParams,
+  options?: RequestInit,
+): Promise<CheckRating200> => {
+  return customFetch<CheckRating200>(getCheckRatingUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getCheckRatingQueryKey = (params?: CheckRatingParams) => {
+  return [`/api/ratings/check`, ...(params ? [params] : [])] as const;
+};
+
+export const getCheckRatingQueryOptions = <
+  TData = Awaited<ReturnType<typeof checkRating>>,
+  TError = ErrorType<unknown>,
+>(
+  params: CheckRatingParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof checkRating>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getCheckRatingQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof checkRating>>> = ({
+    signal,
+  }) => checkRating(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof checkRating>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type CheckRatingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof checkRating>>
+>;
+export type CheckRatingQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Check if appointment has been rated
+ */
+
+export function useCheckRating<
+  TData = Awaited<ReturnType<typeof checkRating>>,
+  TError = ErrorType<unknown>,
+>(
+  params: CheckRatingParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof checkRating>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getCheckRatingQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get dashboard statistics

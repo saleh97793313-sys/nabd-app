@@ -402,6 +402,48 @@ export const DeleteDiscountParams = zod.object({
 });
 
 /**
+ * @summary Submit a clinic rating
+ */
+export const createRatingBodyStarsMax = 5;
+
+export const CreateRatingBody = zod.object({
+  patientPhone: zod.string(),
+  clinicId: zod.number(),
+  appointmentId: zod.number(),
+  stars: zod.number().min(1).max(createRatingBodyStarsMax),
+  comment: zod.string().optional(),
+});
+
+/**
+ * @summary Get ratings for a clinic
+ */
+export const GetClinicRatingsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetClinicRatingsResponseItem = zod.object({
+  id: zod.number(),
+  patientPhone: zod.string(),
+  clinicId: zod.number(),
+  appointmentId: zod.number(),
+  stars: zod.number(),
+  comment: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const GetClinicRatingsResponse = zod.array(GetClinicRatingsResponseItem);
+
+/**
+ * @summary Check if appointment has been rated
+ */
+export const CheckRatingQueryParams = zod.object({
+  appointmentId: zod.coerce.number(),
+});
+
+export const CheckRatingResponse = zod.object({
+  rated: zod.boolean(),
+});
+
+/**
  * @summary Get dashboard statistics
  */
 export const GetDashboardStatsResponse = zod.object({

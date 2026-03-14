@@ -20,6 +20,8 @@ tags:
     description: Dashboard statistics
   - name: discounts
     description: Discount code management
+  - name: ratings
+    description: Clinic rating management
 paths:
   /healthz:
     get:
@@ -333,6 +335,70 @@ paths:
       responses:
         "204":
           description: Deleted
+
+  /ratings:
+    post:
+      operationId: createRating
+      tags: [ratings]
+      summary: Submit a clinic rating
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RatingInput"
+      responses:
+        "201":
+          description: Rating created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rating"
+
+  /clinics/{id}/ratings:
+    get:
+      operationId: getClinicRatings
+      tags: [ratings]
+      summary: Get ratings for a clinic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of ratings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rating"
+
+  /ratings/check:
+    get:
+      operationId: checkRating
+      tags: [ratings]
+      summary: Check if appointment has been rated
+      parameters:
+        - name: appointmentId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rating check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rated:
+                    type: boolean
+                required:
+                  - rated
 
   /stats:
     get:
@@ -715,6 +781,52 @@ components:
         - expiryDate
         - isActive
         - maxUsage
+
+    Rating:
+      type: object
+      properties:
+        id:
+          type: integer
+        patientPhone:
+          type: string
+        clinicId:
+          type: integer
+        appointmentId:
+          type: integer
+        stars:
+          type: integer
+        comment:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - patientPhone
+        - clinicId
+        - appointmentId
+        - stars
+        - createdAt
+
+    RatingInput:
+      type: object
+      properties:
+        patientPhone:
+          type: string
+        clinicId:
+          type: integer
+        appointmentId:
+          type: integer
+        stars:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+      required:
+        - patientPhone
+        - clinicId
+        - appointmentId
+        - stars
 
     DashboardStats:
       type: object
