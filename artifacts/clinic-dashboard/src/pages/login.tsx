@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email.trim() || !password.trim()) {
@@ -18,13 +18,11 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      const result = login(email, password);
-      if (!result.success) {
-        setError(result.error || "خطأ في تسجيل الدخول");
-      }
-      setLoading(false);
-    }, 600);
+    const result = await login(email, password);
+    if (!result.success) {
+      setError(result.error || "خطأ في تسجيل الدخول");
+    }
+    setLoading(false);
   };
 
   return (

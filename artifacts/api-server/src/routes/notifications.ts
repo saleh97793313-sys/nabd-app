@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { desc } from "drizzle-orm";
 import { z } from "zod/v4";
+import crypto from "crypto";
 import { db } from "@workspace/db";
 import { notificationsTable } from "@workspace/db";
 
@@ -10,15 +11,45 @@ function s(obj: Record<string, unknown>) {
   );
 }
 
+const ADMIN_EMAIL = "Saleh97793313@gmail.com";
+const ADMIN_PASSWORD = "nabd@2026";
+const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+
+function getSecret(): string {
+  return process.env.SESSION_SECRET || "fallback-dev-secret";
+}
+
+function signAdminToken(email: string): string {
+  const payload = JSON.stringify({ email, exp: Date.now() + TOKEN_TTL_MS });
+  const sig = crypto.createHmac("sha256", getSecret()).update(payload).digest("hex");
+  return Buffer.from(payload).toString("base64url") + "." + sig;
+}
+
+function verifyAdminToken(token: string): boolean {
+  const [payloadB64, sig] = token.split(".");
+  if (!payloadB64 || !sig) return false;
+  const payload = Buffer.from(payloadB64, "base64url").toString("utf-8");
+  const expected = crypto.createHmac("sha256", getSecret()).update(payload).digest("hex");
+  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return false;
+  try {
+    const data = JSON.parse(payload);
+    if (data.email !== ADMIN_EMAIL) return false;
+    if (typeof data.exp === "number" && Date.now() > data.exp) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function requireAdmin(req: Request, res: Response, next: NextFunction): void {
-  const adminKey = process.env.SESSION_SECRET;
-  if (!adminKey) {
-    res.status(500).json({ error: "تكوين الخادم غير مكتمل" });
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
     return;
   }
-  const provided = req.headers["x-admin-key"];
-  if (!provided || provided !== adminKey) {
-    res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
+  const token = authHeader.slice(7);
+  if (!verifyAdminToken(token)) {
+    res.status(403).json({ error: "غير مصرح — جلسة غير صالحة أو منتهية" });
     return;
   }
   next();
@@ -32,6 +63,20 @@ const CreateNotificationBody = z.object({
 });
 
 const router: IRouter = Router();
+
+router.post("/admin/login", (req: Request, res: Response): void => {
+  const { email, password } = req.body || {};
+  if (!email || !password) {
+    res.status(400).json({ error: "البريد وكلمة السر مطلوبان" });
+    return;
+  }
+  if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD) {
+    res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
+    return;
+  }
+  const token = signAdminToken(email);
+  res.json({ token });
+});
 
 router.get("/notifications", async (req, res): Promise<void> => {
   const level = String(req.query.level || "all");

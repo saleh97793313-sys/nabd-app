@@ -10,14 +10,15 @@ export type OwnerProfile = {
 type AuthState = {
   isAuthenticated: boolean;
   owner: OwnerProfile | null;
-  login: (email: string, password: string) => { success: boolean; error?: string };
+  adminToken: string | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateProfile: (data: Partial<OwnerProfile & { password?: string; newPassword?: string }>) => { success: boolean; error?: string };
 };
 
 const OWNER_SESSION_KEY = "nabd_dashboard_owner";
 const OWNER_PROFILE_KEY = "nabd_dashboard_profile";
-const CREDS_KEY = "nabd_dashboard_creds";
+const ADMIN_TOKEN_KEY = "nabd_admin_token";
 
 const DEFAULT_OWNER: OwnerProfile = {
   name: "مالك التطبيق",
@@ -26,92 +27,71 @@ const DEFAULT_OWNER: OwnerProfile = {
   avatar: "م",
 };
 
+const DEFAULT_EMAIL = "Saleh97793313@gmail.com";
 const DEFAULT_PASSWORD = "nabd@2026";
 
 const AuthContext = createContext<AuthState>({} as AuthState);
 
+async function fetchAdminToken(email: string, password: string): Promise<string | null> {
+  try {
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.token || null;
+  } catch {
+    return null;
+  }
+}
+
 export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [owner, setOwner] = useState<OwnerProfile | null>(null);
+  const [adminToken, setAdminToken] = useState<string | null>(null);
 
   useEffect(() => {
-    let needsClear = false;
-    const savedCreds = localStorage.getItem(CREDS_KEY);
-    if (savedCreds) {
-      try {
-        const parsed = JSON.parse(savedCreds);
-        if (parsed.email === "owner@nabd.om") needsClear = true;
-      } catch {}
-    }
-    const savedSession = localStorage.getItem(OWNER_SESSION_KEY);
-    if (savedSession) {
-      try {
-        const parsed = JSON.parse(savedSession);
-        if (parsed.email === "owner@nabd.om") needsClear = true;
-      } catch {}
-    }
-    const savedProfile = localStorage.getItem(OWNER_PROFILE_KEY);
-    if (savedProfile) {
-      try {
-        const parsed = JSON.parse(savedProfile);
-        if (parsed.email === "owner@nabd.om") needsClear = true;
-      } catch {}
-    }
-    if (needsClear) {
-      localStorage.removeItem(CREDS_KEY);
-      localStorage.removeItem(OWNER_SESSION_KEY);
-      localStorage.removeItem(OWNER_PROFILE_KEY);
-      return;
-    }
     const session = localStorage.getItem(OWNER_SESSION_KEY);
+    const savedToken = localStorage.getItem(ADMIN_TOKEN_KEY);
     if (session) {
       try {
         setOwner(JSON.parse(session));
         setIsAuthenticated(true);
+        if (savedToken) setAdminToken(savedToken);
       } catch {}
     }
   }, []);
 
-  const getCreds = () => {
-    const saved = localStorage.getItem(CREDS_KEY);
-    if (saved) { try { return JSON.parse(saved); } catch {} }
-    return { email: DEFAULT_OWNER.email, password: DEFAULT_PASSWORD };
-  };
-
-  const login = (email: string, password: string) => {
-    const creds = getCreds();
-    if (email.trim().toLowerCase() === creds.email.toLowerCase() && password === creds.password) {
-      const profileRaw = localStorage.getItem(OWNER_PROFILE_KEY);
-      const profile: OwnerProfile = profileRaw ? JSON.parse(profileRaw) : DEFAULT_OWNER;
-      setOwner(profile);
-      setIsAuthenticated(true);
-      localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(profile));
-      return { success: true };
+  const login = async (email: string, password: string) => {
+    if (email.trim().toLowerCase() !== DEFAULT_EMAIL.toLowerCase() || password !== DEFAULT_PASSWORD) {
+      return { success: false, error: "البريد الإلكتروني أو كلمة السر غير صحيحة" };
     }
-    return { success: false, error: "البريد الإلكتروني أو كلمة السر غير صحيحة" };
+    const profileRaw = localStorage.getItem(OWNER_PROFILE_KEY);
+    const profile: OwnerProfile = profileRaw ? JSON.parse(profileRaw) : DEFAULT_OWNER;
+    setOwner(profile);
+    setIsAuthenticated(true);
+    localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(profile));
+
+    const token = await fetchAdminToken(email.trim(), password);
+    if (token) {
+      setAdminToken(token);
+      localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    }
+
+    return { success: true };
   };
 
   const logout = () => {
     setIsAuthenticated(false);
     setOwner(null);
+    setAdminToken(null);
     localStorage.removeItem(OWNER_SESSION_KEY);
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
   };
 
   const updateProfile = (data: Partial<OwnerProfile & { password?: string; newPassword?: string }>) => {
-    const creds = getCreds();
-    if (data.password !== undefined) {
-      if (data.password !== creds.password) {
-        return { success: false, error: "كلمة السر الحالية غير صحيحة" };
-      }
-    }
-    if (data.newPassword) {
-      const newCreds = { ...creds, password: data.newPassword };
-      if (data.email) newCreds.email = data.email;
-      localStorage.setItem(CREDS_KEY, JSON.stringify(newCreds));
-    } else if (data.email && owner) {
-      const newCreds = { ...creds, email: data.email };
-      localStorage.setItem(CREDS_KEY, JSON.stringify(newCreds));
-    }
     if (owner) {
       const updated: OwnerProfile = {
         ...owner,
@@ -127,7 +107,7 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, owner, login, logout, updateProfile }}>
+    <AuthContext.Provider value={{ isAuthenticated, owner, adminToken, login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

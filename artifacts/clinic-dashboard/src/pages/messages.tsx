@@ -9,6 +9,7 @@ import { Layout } from "@/components/layout";
 import { Send, MessageSquare, Users, Filter, Clock, Info, Tag, Star, Calendar } from "lucide-react";
 import { clsx } from "clsx";
 import toast from "react-hot-toast";
+import { useDashboardAuth } from "@/context/DashboardAuth";
 
 const LEVEL_OPTIONS = [
   { value: "all", label: "جميع المستويات", color: "bg-primary/10 text-primary" },
@@ -41,16 +42,19 @@ const TYPE_ICONS: Record<string, typeof Info> = {
 
 export default function MessagesPage() {
   const queryClient = useQueryClient();
+  const { adminToken } = useDashboardAuth();
   const { data: messages = [], isLoading } = useGetNotifications();
 
   const createMutation = useMutation<NotificationEntry, Error, CreateNotificationInput>({
     mutationFn: async (input) => {
-      const adminKey = import.meta.env.VITE_ADMIN_KEY || "";
+      if (!adminToken) {
+        throw new Error("يرجى إعادة تسجيل الدخول");
+      }
       const res = await fetch("/api/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Admin-Key": adminKey,
+          Authorization: `Bearer ${adminToken}`,
         },
         body: JSON.stringify(input),
       });
