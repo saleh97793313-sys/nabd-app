@@ -34,9 +34,23 @@ if [ -z "$DB_URL" ]; then
   read -r DB_URL
 fi
 
+ADMIN_EMAIL_VAL="${ADMIN_EMAIL}"
+if [ -z "$ADMIN_EMAIL_VAL" ]; then
+  echo "أدخل بريد المسؤول (ADMIN_EMAIL):"
+  read -r ADMIN_EMAIL_VAL
+fi
+
+ADMIN_PASSWORD_VAL="${ADMIN_PASSWORD}"
+if [ -z "$ADMIN_PASSWORD_VAL" ]; then
+  echo "أدخل كلمة مرور المسؤول (ADMIN_PASSWORD):"
+  read -r ADMIN_PASSWORD_VAL
+fi
+
 $RAILWAY variables set NODE_ENV=production
 $RAILWAY variables set DATABASE_URL="$DB_URL"
 $RAILWAY variables set SESSION_SECRET="$(openssl rand -hex 32)"
+$RAILWAY variables set ADMIN_EMAIL="$ADMIN_EMAIL_VAL"
+$RAILWAY variables set ADMIN_PASSWORD="$ADMIN_PASSWORD_VAL"
 
 echo ""
 echo "✅ تم ضبط المتغيرات!"
