@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { desc } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
@@ -8,6 +8,27 @@ function s(obj: Record<string, unknown>) {
   return Object.fromEntries(
     Object.entries(obj).map(([k, v]) => [k, v instanceof Date ? v.toISOString() : v])
   );
+}
+
+const ADMIN_EMAIL = "Saleh97793313@gmail.com";
+
+function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Basic ")) {
+    res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
+    return;
+  }
+  try {
+    const decoded = Buffer.from(authHeader.slice(6), "base64").toString("utf-8");
+    const [email] = decoded.split(":");
+    if (email !== ADMIN_EMAIL) {
+      res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
+      return;
+    }
+    next();
+  } catch {
+    res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
+  }
 }
 
 const CreateNotificationBody = z.object({
@@ -32,7 +53,7 @@ router.get("/notifications", async (req, res): Promise<void> => {
   res.json(filtered.map(s));
 });
 
-router.post("/notifications", async (req, res): Promise<void> => {
+router.post("/notifications", requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateNotificationBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
