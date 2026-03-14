@@ -25,6 +25,11 @@ router.post("/ratings", async (req, res): Promise<void> => {
     return;
   }
 
+  if (!Number.isInteger(parsed.data.stars) || parsed.data.stars < 1 || parsed.data.stars > 5) {
+    res.status(400).json({ error: "Stars must be an integer between 1 and 5" });
+    return;
+  }
+
   const [appointment] = await db
     .select()
     .from(appointmentsTable)
