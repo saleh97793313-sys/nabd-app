@@ -28,6 +28,9 @@ if (!basePath) {
 
 export default defineConfig({
   base: basePath,
+  define: {
+    "import.meta.env.VITE_ADMIN_KEY": JSON.stringify(process.env.SESSION_SECRET || ""),
+  },
   plugins: [
     react(),
     tailwindcss(),

@@ -1,7 +1,6 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { desc } from "drizzle-orm";
 import { z } from "zod/v4";
-import bcrypt from "bcryptjs";
 import { db } from "@workspace/db";
 import { notificationsTable } from "@workspace/db";
 
@@ -11,37 +10,18 @@ function s(obj: Record<string, unknown>) {
   );
 }
 
-const ADMIN_EMAIL = "Saleh97793313@gmail.com";
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync("nabd@2026", 10);
-
-async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Basic ")) {
+function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  const adminKey = process.env.SESSION_SECRET;
+  if (!adminKey) {
+    res.status(500).json({ error: "تكوين الخادم غير مكتمل" });
+    return;
+  }
+  const provided = req.headers["x-admin-key"];
+  if (!provided || provided !== adminKey) {
     res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
     return;
   }
-  try {
-    const decoded = Buffer.from(authHeader.slice(6), "base64").toString("utf-8");
-    const colonIdx = decoded.indexOf(":");
-    if (colonIdx < 0) {
-      res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
-      return;
-    }
-    const email = decoded.slice(0, colonIdx);
-    const password = decoded.slice(colonIdx + 1);
-    if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-      res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
-      return;
-    }
-    const valid = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
-    if (!valid) {
-      res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
-      return;
-    }
-    next();
-  } catch {
-    res.status(403).json({ error: "غير مصرح — صلاحيات المسؤول مطلوبة" });
-  }
+  next();
 }
 
 const CreateNotificationBody = z.object({

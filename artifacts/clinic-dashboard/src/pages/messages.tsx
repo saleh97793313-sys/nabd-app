@@ -9,7 +9,6 @@ import { Layout } from "@/components/layout";
 import { Send, MessageSquare, Users, Filter, Clock, Info, Tag, Star, Calendar } from "lucide-react";
 import { clsx } from "clsx";
 import toast from "react-hot-toast";
-import { useDashboardAuth } from "@/context/DashboardAuth";
 
 const LEVEL_OPTIONS = [
   { value: "all", label: "جميع المستويات", color: "bg-primary/10 text-primary" },
@@ -40,24 +39,18 @@ const TYPE_ICONS: Record<string, typeof Info> = {
   appointment: Calendar,
 };
 
-function getAdminAuthHeader(email: string, password: string): string {
-  return `Basic ${btoa(`${email}:${password}`)}`;
-}
-
 export default function MessagesPage() {
   const queryClient = useQueryClient();
-  const { owner } = useDashboardAuth();
   const { data: messages = [], isLoading } = useGetNotifications();
 
   const createMutation = useMutation<NotificationEntry, Error, CreateNotificationInput>({
     mutationFn: async (input) => {
-      const creds = localStorage.getItem("nabd_dashboard_creds");
-      const { email, password } = creds ? JSON.parse(creds) : { email: "Saleh97793313@gmail.com", password: "nabd@2026" };
+      const adminKey = import.meta.env.VITE_ADMIN_KEY || "";
       const res = await fetch("/api/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: getAdminAuthHeader(email, password),
+          "X-Admin-Key": adminKey,
         },
         body: JSON.stringify(input),
       });
