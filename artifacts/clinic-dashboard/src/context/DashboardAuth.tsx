@@ -20,32 +20,7 @@ const OWNER_SESSION_KEY = "nabd_dashboard_owner";
 const OWNER_PROFILE_KEY = "nabd_dashboard_profile";
 const ADMIN_TOKEN_KEY = "nabd_admin_token";
 
-const DEFAULT_OWNER: OwnerProfile = {
-  name: "مالك التطبيق",
-  email: "Saleh97793313@gmail.com",
-  role: "owner",
-  avatar: "م",
-};
-
-const DEFAULT_EMAIL = "Saleh97793313@gmail.com";
-const DEFAULT_PASSWORD = "nabd@2026";
-
 const AuthContext = createContext<AuthState>({} as AuthState);
-
-async function fetchAdminToken(email: string, password: string): Promise<string | null> {
-  try {
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.token || null;
-  } catch {
-    return null;
-  }
-}
 
 export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,32 +30,44 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const session = localStorage.getItem(OWNER_SESSION_KEY);
     const savedToken = localStorage.getItem(ADMIN_TOKEN_KEY);
-    if (session) {
+    if (session && savedToken) {
       try {
         setOwner(JSON.parse(session));
+        setAdminToken(savedToken);
         setIsAuthenticated(true);
-        if (savedToken) setAdminToken(savedToken);
       } catch {}
     }
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (email.trim().toLowerCase() !== DEFAULT_EMAIL.toLowerCase() || password !== DEFAULT_PASSWORD) {
-      return { success: false, error: "البريد الإلكتروني أو كلمة السر غير صحيحة" };
-    }
-    const profileRaw = localStorage.getItem(OWNER_PROFILE_KEY);
-    const profile: OwnerProfile = profileRaw ? JSON.parse(profileRaw) : DEFAULT_OWNER;
-    setOwner(profile);
-    setIsAuthenticated(true);
-    localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(profile));
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        return { success: false, error: data.error || "البريد الإلكتروني أو كلمة السر غير صحيحة" };
+      }
+      const data = await res.json();
+      const token = data.token as string;
 
-    const token = await fetchAdminToken(email.trim(), password);
-    if (token) {
+      const savedProfile = localStorage.getItem(OWNER_PROFILE_KEY);
+      const profile: OwnerProfile = savedProfile
+        ? JSON.parse(savedProfile)
+        : { name: "مالك التطبيق", email: email.trim(), role: "owner" as const, avatar: "م" };
+
+      setOwner(profile);
       setAdminToken(token);
+      setIsAuthenticated(true);
+      localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(profile));
       localStorage.setItem(ADMIN_TOKEN_KEY, token);
-    }
 
-    return { success: true };
+      return { success: true };
+    } catch {
+      return { success: false, error: "خطأ في الاتصال بالخادم" };
+    }
   };
 
   const logout = () => {

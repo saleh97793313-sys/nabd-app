@@ -11,12 +11,24 @@ function s(obj: Record<string, unknown>) {
   );
 }
 
-const ADMIN_EMAIL = "Saleh97793313@gmail.com";
-const ADMIN_PASSWORD = "nabd@2026";
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
+function getAdminEmail(): string {
+  const v = process.env.ADMIN_EMAIL;
+  if (!v) throw new Error("ADMIN_EMAIL environment variable is required");
+  return v;
+}
+
+function getAdminPassword(): string {
+  const v = process.env.ADMIN_PASSWORD;
+  if (!v) throw new Error("ADMIN_PASSWORD environment variable is required");
+  return v;
+}
+
 function getSecret(): string {
-  return process.env.SESSION_SECRET || "fallback-dev-secret";
+  const v = process.env.SESSION_SECRET;
+  if (!v) throw new Error("SESSION_SECRET environment variable is required");
+  return v;
 }
 
 function signAdminToken(email: string): string {
@@ -33,7 +45,7 @@ function verifyAdminToken(token: string): boolean {
   if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return false;
   try {
     const data = JSON.parse(payload);
-    if (data.email !== ADMIN_EMAIL) return false;
+    if (data.email !== getAdminEmail()) return false;
     if (typeof data.exp === "number" && Date.now() > data.exp) return false;
     return true;
   } catch {
@@ -70,7 +82,7 @@ router.post("/admin/login", (req: Request, res: Response): void => {
     res.status(400).json({ error: "البريد وكلمة السر مطلوبان" });
     return;
   }
-  if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD) {
+  if (email.toLowerCase() !== getAdminEmail().toLowerCase() || password !== getAdminPassword()) {
     res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
     return;
   }
