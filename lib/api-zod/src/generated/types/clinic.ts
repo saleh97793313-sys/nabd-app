@@ -22,6 +22,7 @@ export interface Clinic {
   isActive: boolean;
   totalPatients: number;
   pointsPerVisit: number;
+  ratingCount: number;
   /** @nullable */
   latitude?: number | null;
   /** @nullable */

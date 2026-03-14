@@ -266,10 +266,11 @@ export default function ClinicsPage() {
                   </div>
                   <button 
                     onClick={() => openModal(clinic, "ratings")}
-                    className="flex items-center gap-1 text-amber-500 bg-amber-50 px-2 py-1 rounded-md hover:bg-amber-100 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-2.5 py-1 rounded-md hover:bg-amber-100 transition-colors cursor-pointer"
                   >
                     <Star size={14} className="fill-current" />
                     <span className="font-bold text-sm">{clinic.rating.toFixed(1)}</span>
+                    <span className="text-xs text-amber-400">({clinic.ratingCount})</span>
                   </button>
                 </div>
               </div>

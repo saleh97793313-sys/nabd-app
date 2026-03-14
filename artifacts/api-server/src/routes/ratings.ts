@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, avg, count } from "drizzle-orm";
 import { db } from "@workspace/db";
-import { ratingsTable, clinicsTable } from "@workspace/db";
+import { ratingsTable, clinicsTable, appointmentsTable } from "@workspace/db";
 import {
   CreateRatingBody,
   GetClinicRatingsParams,
@@ -25,6 +25,31 @@ router.post("/ratings", async (req, res): Promise<void> => {
     return;
   }
 
+  const [appointment] = await db
+    .select()
+    .from(appointmentsTable)
+    .where(eq(appointmentsTable.id, parsed.data.appointmentId));
+
+  if (!appointment) {
+    res.status(404).json({ error: "Appointment not found" });
+    return;
+  }
+
+  if (appointment.status !== "completed") {
+    res.status(400).json({ error: "Only completed appointments can be rated" });
+    return;
+  }
+
+  if (appointment.patientPhone !== parsed.data.patientPhone) {
+    res.status(403).json({ error: "You can only rate your own appointments" });
+    return;
+  }
+
+  if (appointment.clinicId !== parsed.data.clinicId) {
+    res.status(400).json({ error: "Clinic ID does not match the appointment" });
+    return;
+  }
+
   const existing = await db
     .select()
     .from(ratingsTable)
@@ -34,23 +59,31 @@ router.post("/ratings", async (req, res): Promise<void> => {
     return;
   }
 
-  const [rating] = await db.insert(ratingsTable).values(parsed.data).returning();
+  try {
+    const [rating] = await db.insert(ratingsTable).values(parsed.data).returning();
 
-  const [stats] = await db
-    .select({
-      avgRating: avg(ratingsTable.stars),
-    })
-    .from(ratingsTable)
-    .where(eq(ratingsTable.clinicId, parsed.data.clinicId));
+    const [stats] = await db
+      .select({
+        avgRating: avg(ratingsTable.stars),
+      })
+      .from(ratingsTable)
+      .where(eq(ratingsTable.clinicId, parsed.data.clinicId));
 
-  if (stats?.avgRating) {
-    await db
-      .update(clinicsTable)
-      .set({ rating: parseFloat(parseFloat(stats.avgRating).toFixed(1)) })
-      .where(eq(clinicsTable.id, parsed.data.clinicId));
+    if (stats?.avgRating) {
+      await db
+        .update(clinicsTable)
+        .set({ rating: parseFloat(parseFloat(stats.avgRating).toFixed(1)) })
+        .where(eq(clinicsTable.id, parsed.data.clinicId));
+    }
+
+    res.status(201).json(s(rating));
+  } catch (err: any) {
+    if (err?.code === "23505") {
+      res.status(409).json({ error: "This appointment has already been rated" });
+      return;
+    }
+    throw err;
   }
-
-  res.status(201).json(s(rating));
 });
 
 router.get("/clinics/:id/ratings", async (req, res): Promise<void> => {
