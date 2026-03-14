@@ -15,7 +15,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import { useAppContext, Notification } from "@/context/AppContext";
 
-const NOTIF_CONFIG = {
+type FeatherIconName = React.ComponentProps<typeof Feather>["name"];
+type ThemeColors = typeof Colors.light;
+
+const NOTIF_CONFIG: Record<string, { icon: FeatherIconName; color: string; bg: string }> = {
   points: { icon: "star", color: "#FFB800", bg: "#FFF8E1" },
   offer: { icon: "tag", color: "#00C896", bg: "#E6FBF5" },
   appointment: { icon: "calendar", color: "#1A3A5C", bg: "#EBF4FF" },
@@ -28,10 +31,10 @@ function NotifItem({
   onPress,
 }: {
   notif: Notification;
-  colors: any;
+  colors: ThemeColors;
   onPress: () => void;
 }) {
-  const config = NOTIF_CONFIG[notif.type];
+  const config = NOTIF_CONFIG[notif.type] || NOTIF_CONFIG.points;
   const date = new Date(notif.createdAt);
   const timeStr = date.toLocaleDateString("ar-OM", {
     day: "numeric",
@@ -52,7 +55,7 @@ function NotifItem({
       ]}
     >
       <View style={[styles.notifIcon, { backgroundColor: config.bg }]}>
-        <Feather name={config.icon as any} size={20} color={config.color} />
+        <Feather name={config.icon} size={20} color={config.color} />
       </View>
 
       <View style={styles.notifContent}>

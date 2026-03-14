@@ -554,3 +554,32 @@ export const GetPointsLogByPhoneResponseItem = zod.object({
 export const GetPointsLogByPhoneResponse = zod.array(
   GetPointsLogByPhoneResponseItem,
 );
+
+/**
+ * @summary Get notifications (optionally filtered by patient level)
+ */
+export const GetNotificationsQueryParams = zod.object({
+  level: zod.enum(["all", "bronze", "silver", "gold", "platinum"]).optional(),
+});
+
+export const GetNotificationsResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  body: zod.string(),
+  type: zod.enum(["info", "offer", "points", "appointment"]),
+  targetLevel: zod.enum(["all", "bronze", "silver", "gold", "platinum"]),
+  createdAt: zod.string(),
+});
+export const GetNotificationsResponse = zod.array(GetNotificationsResponseItem);
+
+/**
+ * @summary Create a broadcast notification (admin)
+ */
+export const CreateNotificationBody = zod.object({
+  title: zod.string(),
+  body: zod.string(),
+  type: zod.enum(["info", "offer", "points", "appointment"]).optional(),
+  targetLevel: zod
+    .enum(["all", "bronze", "silver", "gold", "platinum"])
+    .optional(),
+});

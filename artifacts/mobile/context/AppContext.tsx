@@ -143,32 +143,12 @@ const MOCK_APPOINTMENTS: Appointment[] = [
   },
 ];
 
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "n1",
-    title: "نقاط جديدة!",
-    message: "حصلت على 180 نقطة من زيارتك لمعهد عيون عُمان",
-    type: "points",
-    isRead: false,
-    createdAt: "2026-03-10T14:30:00Z",
-  },
-  {
-    id: "n2",
-    title: "عرض حصري لك!",
-    message: "مركز رويال يقدم خصم على جلسات العلاج الطبيعي",
-    type: "offer",
-    isRead: false,
-    createdAt: "2026-03-12T09:00:00Z",
-  },
-  {
-    id: "n3",
-    title: "موعدك غداً",
-    message: "لديك موعد في مركز رويال غداً الساعة 10:00 صباحاً",
-    type: "appointment",
-    isRead: true,
-    createdAt: "2026-03-17T18:00:00Z",
-  },
-];
+const NOTIF_TYPE_MAP: Record<string, Notification["type"]> = {
+  info: "points",
+  offer: "offer",
+  points: "points",
+  appointment: "appointment",
+};
 
 type AuthResult = { success: true } | { success: false; error: string };
 
@@ -246,7 +226,8 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
     const [authLoading, setAuthLoading] = useState(true);
     const [userRole, setUserRole] = useState<UserRole>("patient");
     const [patient, setPatient] = useState<Patient>(DEFAULT_PATIENT);
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [readIds, setReadIds] = useState<Set<string>>(new Set());
     const [discountsUsed, setDiscountsUsed] = useState<Set<string>>(new Set());
 
     const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -269,6 +250,8 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
             const data = JSON.parse(stored);
             setPatient(data);
             setIsAuthenticated(true);
+            fetchNotifications(data.level || "all");
+            if (data.phone) fetchAppointments(data.phone);
           }
         } catch {
         } finally {
@@ -399,6 +382,26 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       }
     };
 
+    const fetchNotifications = async (level: string) => {
+      try {
+        const levelParam = level || "all";
+        const res = await fetch(`${getApiBase()}/notifications?level=${encodeURIComponent(levelParam)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const mapped: Notification[] = data.map((n: { id: number; title: string; body: string; type: string; createdAt: string }) => ({
+          id: String(n.id),
+          title: n.title,
+          message: n.body,
+          type: NOTIF_TYPE_MAP[n.type] || "points",
+          isRead: readIds.has(String(n.id)),
+          createdAt: n.createdAt,
+        }));
+        setNotifications(mapped);
+      } catch {
+        setNotifications([]);
+      }
+    };
+
     useEffect(() => {
       fetchClinics();
       fetchOffers();
@@ -427,6 +430,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
         setIsGuest(false);
         setIsAuthenticated(true);
         fetchAppointments(mappedPatient.phone);
+        fetchNotifications(mappedPatient.level);
         return { success: true };
       } catch {
         return { success: false, error: "خطأ في الاتصال بالخادم" };
@@ -455,6 +459,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
         setPatient(mappedPatient);
         setIsGuest(false);
         setIsAuthenticated(true);
+        fetchNotifications(mappedPatient.level || "bronze");
         return { success: true };
       } catch {
         return { success: false, error: "خطأ في الاتصال بالخادم" };
@@ -466,6 +471,8 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       setPatient(GUEST_PATIENT);
       setIsGuest(true);
       setIsAuthenticated(true);
+      setNotifications([]);
+      setReadIds(new Set());
     };
 
     const enterAsGuest = () => {
@@ -475,6 +482,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
     };
 
     const markNotificationRead = (id: string) => {
+      setReadIds((prev) => new Set([...prev, id]));
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );

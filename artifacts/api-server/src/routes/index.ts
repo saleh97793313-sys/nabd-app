@@ -8,6 +8,7 @@ import statsRouter from "./stats";
 import authRouter from "./auth";
 import ratingsRouter from "./ratings";
 import pointsLogRouter from "./pointsLog";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(discountsRouter);
 router.use(statsRouter);
 router.use(ratingsRouter);
 router.use(pointsLogRouter);
+router.use(notificationsRouter);
 
 export default router;

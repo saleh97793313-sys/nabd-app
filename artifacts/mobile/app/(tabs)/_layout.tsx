@@ -31,7 +31,7 @@ function NativeTabLayout() {
         <Icon sf={{ default: "calendar", selected: "calendar.fill" }} />
         <Label>مواعيدي</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
+      <NativeTabs.Trigger name="profile" badge={unreadCount > 0 ? String(unreadCount) : undefined}>
         <Icon sf={{ default: "person", selected: "person.fill" }} />
         <Label>حسابي</Label>
       </NativeTabs.Trigger>
@@ -164,6 +164,11 @@ function ClassicTabLayout() {
               ) : (
                 <Feather name="user" size={24} color={color} />
               )}
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount > 9 ? "9+" : unreadCount}</Text>
+                </View>
+              )}
             </View>
           ),
         }}
@@ -185,7 +190,24 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     position: "absolute",
     top: -6,
-  }
+  },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -8,
+    backgroundColor: "#FF3B30",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
 });
 
 export default function TabLayout() {

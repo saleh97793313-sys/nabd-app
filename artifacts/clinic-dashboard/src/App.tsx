@@ -9,6 +9,7 @@ import OffersPage from "@/pages/offers";
 import AppointmentsPage from "@/pages/appointments";
 import DiscountsPage from "@/pages/discounts";
 import PatientsPage from "@/pages/patients";
+import MessagesPage from "@/pages/messages";
 import SettingsPage from "@/pages/settings";
 import LoginPage from "@/pages/login";
 
@@ -33,6 +34,7 @@ function ProtectedRouter() {
       <Route path="/appointments" component={AppointmentsPage} />
       <Route path="/discounts" component={DiscountsPage} />
       <Route path="/patients" component={PatientsPage} />
+      <Route path="/messages" component={MessagesPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route>
         <div className="min-h-screen flex flex-col items-center justify-center text-center p-4" dir="rtl">

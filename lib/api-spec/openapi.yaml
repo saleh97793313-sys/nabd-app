@@ -22,6 +22,8 @@ tags:
     description: Discount code management
   - name: ratings
     description: Clinic rating management
+  - name: notifications
+    description: Broadcast notification management
 paths:
   /healthz:
     get:
@@ -494,6 +496,45 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PointsLogEntry"
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get notifications (optionally filtered by patient level)
+      parameters:
+        - name: level
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, bronze, silver, gold, platinum]
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationEntry"
+    post:
+      operationId: createNotification
+      tags: [notifications]
+      summary: Create a broadcast notification (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotificationInput"
+      responses:
+        "201":
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationEntry"
 
 components:
   schemas:
@@ -1028,3 +1069,45 @@ components:
         - points
         - totalVisits
         - joinedAt
+
+    NotificationEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        type:
+          type: string
+          enum: [info, offer, points, appointment]
+        targetLevel:
+          type: string
+          enum: [all, bronze, silver, gold, platinum]
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - body
+        - type
+        - targetLevel
+        - createdAt
+
+    CreateNotificationInput:
+      type: object
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        type:
+          type: string
+          enum: [info, offer, points, appointment]
+        targetLevel:
+          type: string
+          enum: [all, bronze, silver, gold, platinum]
+      required:
+        - title
+        - body

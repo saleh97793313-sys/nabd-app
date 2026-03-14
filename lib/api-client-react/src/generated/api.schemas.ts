@@ -293,6 +293,64 @@ export interface Patient {
   lastVisit?: string | null;
 }
 
+export type NotificationEntryType =
+  (typeof NotificationEntryType)[keyof typeof NotificationEntryType];
+
+export const NotificationEntryType = {
+  info: "info",
+  offer: "offer",
+  points: "points",
+  appointment: "appointment",
+} as const;
+
+export type NotificationEntryTargetLevel =
+  (typeof NotificationEntryTargetLevel)[keyof typeof NotificationEntryTargetLevel];
+
+export const NotificationEntryTargetLevel = {
+  all: "all",
+  bronze: "bronze",
+  silver: "silver",
+  gold: "gold",
+  platinum: "platinum",
+} as const;
+
+export interface NotificationEntry {
+  id: number;
+  title: string;
+  body: string;
+  type: NotificationEntryType;
+  targetLevel: NotificationEntryTargetLevel;
+  createdAt: string;
+}
+
+export type CreateNotificationInputType =
+  (typeof CreateNotificationInputType)[keyof typeof CreateNotificationInputType];
+
+export const CreateNotificationInputType = {
+  info: "info",
+  offer: "offer",
+  points: "points",
+  appointment: "appointment",
+} as const;
+
+export type CreateNotificationInputTargetLevel =
+  (typeof CreateNotificationInputTargetLevel)[keyof typeof CreateNotificationInputTargetLevel];
+
+export const CreateNotificationInputTargetLevel = {
+  all: "all",
+  bronze: "bronze",
+  silver: "silver",
+  gold: "gold",
+  platinum: "platinum",
+} as const;
+
+export interface CreateNotificationInput {
+  title: string;
+  body: string;
+  type?: CreateNotificationInputType;
+  targetLevel?: CreateNotificationInputTargetLevel;
+}
+
 export type UpdateAppointmentStatusBodyStatus =
   (typeof UpdateAppointmentStatusBodyStatus)[keyof typeof UpdateAppointmentStatusBodyStatus];
 
@@ -318,3 +376,18 @@ export type CheckRating200 = {
 export type GetPointsLogByPhoneParams = {
   phone: string;
 };
+
+export type GetNotificationsParams = {
+  level?: GetNotificationsLevel;
+};
+
+export type GetNotificationsLevel =
+  (typeof GetNotificationsLevel)[keyof typeof GetNotificationsLevel];
+
+export const GetNotificationsLevel = {
+  all: "all",
+  bronze: "bronze",
+  silver: "silver",
+  gold: "gold",
+  platinum: "platinum",
+} as const;

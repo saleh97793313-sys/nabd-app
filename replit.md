@@ -107,6 +107,8 @@ Expo React Native mobile app for patients. Connects to the API via `EXPO_PUBLIC_
 - Tapping the QR opens full-screen QR modal for easy scanning at clinics
 - "سجل النقاط" menu item navigates to `/points-history` screen showing all points transactions
 - Points log entries are created automatically on appointment completion and patient registration
+- Notifications fetched from API (filtered by patient loyalty level), replacing mock data
+- Profile tab shows red unread notification count badge
 
 - Set `EXPO_PUBLIC_API_URL` in `artifacts/mobile/.env` to point to the production API (e.g. `https://your-api.up.railway.app/api`)
 - In development, `EXPO_PUBLIC_DOMAIN` is set automatically to the Replit dev domain
@@ -121,6 +123,8 @@ React + Vite admin dashboard for clinics. Built with Tailwind CSS.
 - Clinic form has an interactive Leaflet/OpenStreetMap map picker for selecting clinic location (no API key needed)
 - Map picker supports search (Nominatim geocoding, scoped to Oman) and click-to-set-pin
 - Patients page shows "السجل" button per patient that opens a points history modal showing earned/deducted/balance summary and transaction list
+- Messages page ("الرسائل") for composing and broadcasting notifications to patients by loyalty level
+- Appointments page has list/calendar toggle with a week calendar grid view showing time slots and appointment chips
 
 ## Deployment
 

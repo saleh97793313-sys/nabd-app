@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, Tags, Calendar, Percent, Users,
   Bell, LogOut, HeartPulse, Menu, X, Search, ChevronLeft,
   ChevronRight, Moon, Sun, Settings, Crown, Check, Info,
-  AlertTriangle, CheckCircle2,
+  AlertTriangle, CheckCircle2, MessageSquare,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -19,6 +19,7 @@ const navItems = [
   { name: "المواعيد", href: "/appointments", icon: Calendar, color: "text-purple-500" },
   { name: "الخصومات", href: "/discounts", icon: Percent, color: "text-rose-500" },
   { name: "المرضى", href: "/patients", icon: Users, color: "text-indigo-500" },
+  { name: "الرسائل", href: "/messages", icon: MessageSquare, color: "text-cyan-500" },
 ];
 
 type Notif = { id: number; title: string; body: string; type: "info" | "success" | "warning"; read: boolean; time: string };
