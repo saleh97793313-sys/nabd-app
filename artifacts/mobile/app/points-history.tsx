@@ -145,6 +145,11 @@ export default function PointsHistoryScreen() {
                     <Text style={[styles.entryDescription, { color: colors.text }]}>
                       {entry.description}
                     </Text>
+                    {entry.clinicName && (
+                      <Text style={[styles.entryClinic, { color: colors.textSecondary }]}>
+                        {entry.clinicName}
+                      </Text>
+                    )}
                     <View style={styles.entryMeta}>
                       <View style={[styles.typeBadge, { backgroundColor: cfg.color + "15" }]}>
                         <Feather name={cfg.icon as any} size={10} color={cfg.color} />
@@ -238,6 +243,7 @@ const styles = StyleSheet.create({
   },
   entryContent: { flex: 1, gap: 6 },
   entryDescription: { fontSize: 14, fontFamily: "Inter_600SemiBold", textAlign: "right" },
+  entryClinic: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "right" },
   entryMeta: {
     flexDirection: "row-reverse",
     alignItems: "center",

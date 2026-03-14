@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AddPointsInput,
   Appointment,
   CheckRating200,
   CheckRatingParams,
@@ -1944,6 +1945,93 @@ export function useGetPatientPointsLog<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Add points to a patient and log the transaction
+ */
+export const getAddPatientPointsUrl = (id: number) => {
+  return `/api/patients/${id}/points`;
+};
+
+export const addPatientPoints = async (
+  id: number,
+  addPointsInput: AddPointsInput,
+  options?: RequestInit,
+): Promise<PointsLogEntry> => {
+  return customFetch<PointsLogEntry>(getAddPatientPointsUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addPointsInput),
+  });
+};
+
+export const getAddPatientPointsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addPatientPoints>>,
+    TError,
+    { id: number; data: BodyType<AddPointsInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addPatientPoints>>,
+  TError,
+  { id: number; data: BodyType<AddPointsInput> },
+  TContext
+> => {
+  const mutationKey = ["addPatientPoints"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addPatientPoints>>,
+    { id: number; data: BodyType<AddPointsInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return addPatientPoints(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddPatientPointsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addPatientPoints>>
+>;
+export type AddPatientPointsMutationBody = BodyType<AddPointsInput>;
+export type AddPatientPointsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add points to a patient and log the transaction
+ */
+export const useAddPatientPoints = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addPatientPoints>>,
+    TError,
+    { id: number; data: BodyType<AddPointsInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addPatientPoints>>,
+  TError,
+  { id: number; data: BodyType<AddPointsInput> },
+  TContext
+> => {
+  return useMutation(getAddPatientPointsMutationOptions(options));
+};
 
 /**
  * @summary Get points log by patient phone number

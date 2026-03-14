@@ -510,6 +510,31 @@ export const GetPatientPointsLogResponse = zod.array(
 );
 
 /**
+ * @summary Add points to a patient and log the transaction
+ */
+export const AddPatientPointsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AddPatientPointsBody = zod.object({
+  points: zod.number(),
+  type: zod.enum(["visit", "bonus", "manual", "registration"]),
+  description: zod.string(),
+  clinicName: zod.string().nullish(),
+});
+
+export const AddPatientPointsResponse = zod.object({
+  id: zod.number(),
+  patientId: zod.number(),
+  patientPhone: zod.string(),
+  type: zod.enum(["visit", "bonus", "manual", "registration"]),
+  points: zod.number(),
+  description: zod.string(),
+  clinicName: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
  * @summary Get points log by patient phone number
  */
 export const GetPointsLogByPhoneQueryParams = zod.object({

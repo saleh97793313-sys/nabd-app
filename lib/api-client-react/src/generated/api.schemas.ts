@@ -206,6 +206,24 @@ export interface RatingInput {
   comment?: string;
 }
 
+export type AddPointsInputType =
+  (typeof AddPointsInputType)[keyof typeof AddPointsInputType];
+
+export const AddPointsInputType = {
+  visit: "visit",
+  bonus: "bonus",
+  manual: "manual",
+  registration: "registration",
+} as const;
+
+export interface AddPointsInput {
+  points: number;
+  type: AddPointsInputType;
+  description: string;
+  /** @nullable */
+  clinicName?: string | null;
+}
+
 export type PointsLogEntryType =
   (typeof PointsLogEntryType)[keyof typeof PointsLogEntryType];
 

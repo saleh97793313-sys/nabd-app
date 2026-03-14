@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./addPointsInput";
+export * from "./addPointsInputType";
 export * from "./appointment";
 export * from "./appointmentStatus";
 export * from "./checkRating200";

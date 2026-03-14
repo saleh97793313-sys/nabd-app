@@ -449,6 +449,31 @@ paths:
                 items:
                   $ref: "#/components/schemas/PointsLogEntry"
 
+  /patients/{id}/points:
+    post:
+      operationId: addPatientPoints
+      tags: [stats]
+      summary: Add points to a patient and log the transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddPointsInput"
+      responses:
+        "200":
+          description: Updated patient with logged points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PointsLogEntry"
+
   /points-log/by-phone:
     get:
       operationId: getPointsLogByPhone
@@ -872,6 +897,23 @@ components:
         - clinicId
         - appointmentId
         - stars
+
+    AddPointsInput:
+      type: object
+      properties:
+        points:
+          type: integer
+        type:
+          type: string
+          enum: [visit, bonus, manual, registration]
+        description:
+          type: string
+        clinicName:
+          type: ["string", "null"]
+      required:
+        - points
+        - type
+        - description
 
     PointsLogEntry:
       type: object

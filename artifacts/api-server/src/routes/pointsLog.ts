@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, desc } from "drizzle-orm";
+import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import { pointsLogTable, patientsTable } from "@workspace/db";
 
@@ -8,6 +9,20 @@ function s(obj: Record<string, any>) {
     Object.entries(obj).map(([k, v]) => [k, v instanceof Date ? v.toISOString() : v])
   );
 }
+
+function calcLevel(points: number): "bronze" | "silver" | "gold" | "platinum" {
+  if (points >= 6000) return "platinum";
+  if (points >= 3000) return "gold";
+  if (points >= 1000) return "silver";
+  return "bronze";
+}
+
+const AddPointsBody = z.object({
+  points: z.number().int(),
+  type: z.enum(["visit", "bonus", "manual", "registration"]),
+  description: z.string(),
+  clinicName: z.string().nullable().optional(),
+});
 
 const router: IRouter = Router();
 
@@ -23,6 +38,41 @@ router.get("/patients/:id/points-log", async (req, res): Promise<void> => {
     .orderBy(desc(pointsLogTable.createdAt));
 
   res.json(logs.map(s));
+});
+
+router.post("/patients/:id/points", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid patient id" }); return; }
+
+  const parsed = AddPointsBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [patient] = await db.select().from(patientsTable).where(eq(patientsTable.id, id));
+  if (!patient) { res.status(404).json({ error: "Patient not found" }); return; }
+
+  const logEntry = await db.transaction(async (tx) => {
+    const newPoints = Math.max(0, patient.points + parsed.data.points);
+    const newLevel = calcLevel(newPoints);
+    const updateFields: Record<string, any> = { points: newPoints, level: newLevel };
+    if (parsed.data.type === "visit") {
+      updateFields.totalVisits = patient.totalVisits + 1;
+      updateFields.lastVisit = new Date();
+    }
+    await tx.update(patientsTable).set(updateFields).where(eq(patientsTable.id, id));
+
+    const [entry] = await tx.insert(pointsLogTable).values({
+      patientId: patient.id,
+      patientPhone: patient.phone,
+      type: parsed.data.type,
+      points: parsed.data.points,
+      description: parsed.data.description,
+      clinicName: parsed.data.clinicName || null,
+    }).returning();
+
+    return entry;
+  });
+
+  res.json(s(logEntry));
 });
 
 router.get("/points-log/by-phone", async (req, res): Promise<void> => {

@@ -115,6 +115,30 @@ router.patch("/appointments/:id", async (req, res): Promise<void> => {
     }
   }
 
+  if (parsed.data.status === "confirmed" && existing.status === "pending") {
+    const bonusPoints = 10;
+    await db.transaction(async (tx) => {
+      const [patient] = await tx.select().from(patientsTable)
+        .where(eq(patientsTable.phone, appointment.patientPhone));
+      if (patient) {
+        const newPoints = patient.points + bonusPoints;
+        const newLevel = newPoints >= 6000 ? "platinum" : newPoints >= 3000 ? "gold" : newPoints >= 1000 ? "silver" : "bronze";
+        await tx.update(patientsTable)
+          .set({ points: newPoints, level: newLevel })
+          .where(eq(patientsTable.id, patient.id));
+
+        await tx.insert(pointsLogTable).values({
+          patientId: patient.id,
+          patientPhone: patient.phone,
+          type: "bonus",
+          points: bonusPoints,
+          description: `تأكيد موعد في ${appointment.clinicName}`,
+          clinicName: appointment.clinicName,
+        });
+      }
+    });
+  }
+
   res.json(UpdateAppointmentStatusResponse.parse(s(appointment)));
 });
 
