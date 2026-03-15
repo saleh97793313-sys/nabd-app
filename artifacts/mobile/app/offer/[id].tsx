@@ -51,10 +51,14 @@ export default function OfferDetailScreen() {
         { text: "إلغاء", style: "cancel" },
         {
           text: "نعم، استخدم",
-          onPress: () => {
+          onPress: async () => {
             redeemOffer(offer.id);
-            bookAppointment(offer.clinicId);
-            setRedeemed(true);
+            const result = await bookAppointment(offer.clinicId);
+            if (result.success) {
+              setRedeemed(true);
+            } else {
+              Alert.alert("خطأ", result.error || "فشل في حجز الموعد");
+            }
           },
         },
       ]
