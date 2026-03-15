@@ -58,12 +58,41 @@ const DEFAULT_SERVICES = [
   { en: "Follow-up", ar: "متابعة" },
 ];
 
-const TIME_SLOTS = [
-  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-  "11:00", "11:30", "12:00", "14:00", "14:30", "15:00",
-  "15:30", "16:00", "16:30", "17:00", "17:30", "18:00",
-  "18:30", "19:00", "19:30", "20:00",
+const ALL_TIME_SLOTS = [
+  "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+  "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00",
+  "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00",
 ];
+
+function parseOpenHours(openHours?: string): { start: number; end: number } | null {
+  if (!openHours) return null;
+  const timeRegex = /(\d{1,2})\s*(?::(\d{2}))?\s*(ص|م)/g;
+  const matches = [...openHours.matchAll(timeRegex)];
+  if (matches.length < 2) return null;
+  const toMinutes = (m: RegExpMatchArray) => {
+    let h = parseInt(m[1]);
+    const min = parseInt(m[2] || "0");
+    const isPM = m[3] === "م";
+    if (isPM && h < 12) h += 12;
+    if (!isPM && h === 12) h = 0;
+    return h * 60 + min;
+  };
+  return { start: toMinutes(matches[0]), end: toMinutes(matches[1]) };
+}
+
+function getFilteredTimeSlots(openHours?: string): string[] {
+  const range = parseOpenHours(openHours);
+  if (!range) return ALL_TIME_SLOTS.filter((t) => {
+    const [h] = t.split(":").map(Number);
+    return h >= 8 && h < 20;
+  });
+  return ALL_TIME_SLOTS.filter((t) => {
+    const [h, m] = t.split(":").map(Number);
+    const mins = h * 60 + m;
+    return mins >= range.start && mins < range.end;
+  });
+}
 
 const AR_DAYS = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const AR_MONTHS = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
@@ -90,7 +119,7 @@ type BookingModalProps = {
   clinic: Clinic;
   colors: ThemeColors;
   pointsPerVisit: number;
-  onClose: () => void;
+  onClose: (wasSuccess?: boolean) => void;
   onBook: (details: {
     service: string;
     serviceAr: string;
@@ -104,6 +133,7 @@ export function BookingModal({ visible, clinic, colors, pointsPerVisit, onClose,
   const specialtyKey = clinic.specialtyEn || clinic.specialty;
   const services = SPECIALTY_SERVICES[specialtyKey] || DEFAULT_SERVICES;
   const nextDays = useMemo(() => getNextDays(7), []);
+  const timeSlots = useMemo(() => getFilteredTimeSlots(clinic.openHours), [clinic.openHours]);
 
   const [selectedService, setSelectedService] = useState(0);
   const [selectedDate, setSelectedDate] = useState(0);
@@ -121,8 +151,9 @@ export function BookingModal({ visible, clinic, colors, pointsPerVisit, onClose,
   };
 
   const handleClose = () => {
+    const wasSuccess = step === "success";
     resetForm();
-    onClose();
+    onClose(wasSuccess);
   };
 
   const handleBook = async () => {
@@ -240,7 +271,7 @@ export function BookingModal({ visible, clinic, colors, pointsPerVisit, onClose,
 
                 <Text style={[bStyles.sectionLabel, { color: colors.text }]}>الوقت</Text>
                 <View style={bStyles.timeGrid}>
-                  {TIME_SLOTS.map((t) => {
+                  {timeSlots.map((t) => {
                     const active = selectedTime === t;
                     return (
                       <Pressable

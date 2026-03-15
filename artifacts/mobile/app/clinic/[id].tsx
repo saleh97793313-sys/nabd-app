@@ -221,7 +221,12 @@ export default function ClinicDetailScreen() {
         clinic={clinic}
         colors={colors}
         pointsPerVisit={pointsPerVisit}
-        onClose={() => setShowBooking(false)}
+        onClose={(wasSuccess) => {
+          setShowBooking(false);
+          if (wasSuccess) {
+            router.replace("/(tabs)/appointments");
+          }
+        }}
         onBook={(details) => bookAppointment(clinic.id, details)}
       />
     </View>

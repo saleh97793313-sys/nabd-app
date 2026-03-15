@@ -155,6 +155,8 @@ type AppContextType = {
   bookAppointment: (clinicId: string, details?: { service: string; serviceAr: string; date: string; time: string; notes?: string }) => Promise<{ success: boolean; error?: string }>;
   redeemOffer: (offerId: string) => void;
   markDiscountUsed: (id: string) => void;
+  bookingJustCompleted: boolean;
+  clearBookingCompleted: () => void;
   refreshClinics: () => void;
   refreshOffers: () => void;
   refreshDiscounts: () => void;
@@ -225,6 +227,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
 
     const [apiAppointments, setApiAppointments] = useState<Appointment[]>([]);
     const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+    const [bookingJustCompleted, setBookingJustCompleted] = useState(false);
 
     useEffect(() => {
       const restoreAuth = async () => {
@@ -502,6 +505,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
         }
         fetchAppointments(patient.phone);
         setPatient((prev) => ({ ...prev, totalVisits: prev.totalVisits + 1 }));
+        setBookingJustCompleted(true);
         return { success: true };
       } catch {
         return { success: false, error: "خطأ في الاتصال بالخادم" };
@@ -546,6 +550,8 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       bookAppointment,
       redeemOffer,
       markDiscountUsed,
+      bookingJustCompleted,
+      clearBookingCompleted: () => setBookingJustCompleted(false),
       refreshClinics: fetchClinics,
       refreshOffers: fetchOffers,
       refreshDiscounts: fetchDiscounts,

@@ -342,13 +342,20 @@ export default function AppointmentsScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { appointments, patient, isGuest } = useAppContext();
+  const { appointments, patient, isGuest, bookingJustCompleted, clearBookingCompleted } = useAppContext();
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
 
   const [ratedIds, setRatedIds] = useState<Set<string>>(new Set());
   const [ratingAppointment, setRatingAppointment] = useState<Appointment | null>(null);
   const [showThankYou, setShowThankYou] = useState(false);
+
+  useEffect(() => {
+    if (bookingJustCompleted) {
+      const timer = setTimeout(() => clearBookingCompleted(), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [bookingJustCompleted]);
 
   useEffect(() => {
     if (isGuest || !patient.phone) return;
@@ -402,6 +409,13 @@ export default function AppointmentsScreen() {
           تتبع زياراتك واكسب النقاط
         </Text>
       </View>
+
+      {bookingJustCompleted && (
+        <View style={thankYouStyles.container}>
+          <Feather name="calendar" size={20} color="#00C896" />
+          <Text style={thankYouStyles.text}>تم حجز موعدك بنجاح!</Text>
+        </View>
+      )}
 
       {showThankYou && (
         <View style={thankYouStyles.container}>
