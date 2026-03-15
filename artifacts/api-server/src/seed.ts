@@ -4,7 +4,12 @@ import { clinicsTable, offersTable, appointmentsTable, discountsTable, patientsT
 async function seed() {
   console.log("Seeding database...");
 
-  // Clear existing data
+  const existing = await db.select().from(clinicsTable);
+  if (existing.length > 0) {
+    console.log("✅ Database already seeded, skipping.");
+    process.exit(0);
+  }
+
   await db.delete(appointmentsTable);
   await db.delete(offersTable);
   await db.delete(discountsTable);
