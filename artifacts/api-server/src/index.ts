@@ -21,16 +21,17 @@ async function fixSeededPatients() {
     for (const p of allPatients) {
       const updates: Record<string, string> = {};
 
-      if (!p.passwordHash) {
-        updates.passwordHash = hash;
-      }
-
       const knownAccount = KNOWN_TEST_ACCOUNTS.find(
         (k) => k.email === p.email || k.phone === p.phone || k.name === p.name
       );
+
       if (knownAccount) {
+        // Always reset password for known test accounts to ensure correct hash
+        updates.passwordHash = hash;
         if (!p.email) updates.email = knownAccount.email;
         if (!p.phone) updates.phone = knownAccount.phone;
+      } else if (!p.passwordHash) {
+        updates.passwordHash = hash;
       }
 
       if (Object.keys(updates).length > 0) {
