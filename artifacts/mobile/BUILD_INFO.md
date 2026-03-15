@@ -1,15 +1,25 @@
 # EAS Build Info — نبض (Nabd) Android APK
 
-## Latest Build
+## Latest Build ✅ COMPLETED
 
 | Field | Value |
 |-------|-------|
 | Build ID | `503fffe0-14dc-4abf-b13d-eeeca27a8851` |
 | Platform | Android |
 | Profile | preview (APK) |
-| Status | in progress → check link below |
-| Triggered | 2026-03-15 |
+| Status | ✅ finished |
+| Finished at | 2026-03-15 23:28:10 |
 | Build Logs | https://expo.dev/accounts/saleh99/projects/nabd-app/builds/503fffe0-14dc-4abf-b13d-eeeca27a8851 |
+| **APK Download URL** | **https://expo.dev/artifacts/eas/aUKWciHPJy2NSGRMJ1yEUR.apk** |
+
+## EXPO_TOKEN Verification
+
+```
+$ EXPO_TOKEN="$EXPO_TOKEN" npx eas-cli whoami
+saleh99 (authenticated using EXPO_TOKEN)
+saleh97793313@gmail.com
+✅ Token verified and working
+```
 
 ## Build Command Used
 
@@ -29,25 +39,19 @@ Your project archive is 225 MB.
 ✔ Uploaded to EAS 39s
 ✔ Computed project fingerprint
 See logs: https://expo.dev/accounts/saleh99/projects/nabd-app/builds/503fffe0-14dc-4abf-b13d-eeeca27a8851
-Waiting for build to complete...
+Build status: finished ✅
+Application Archive URL: https://expo.dev/artifacts/eas/aUKWciHPJy2NSGRMJ1yEUR.apk
 ```
 
-## Previous Build
+## How to Install APK
 
-| Field | Value |
-|-------|-------|
-| Build ID | Previous build (9 hours before latest) |
-| Status | ✅ completed |
-| Profile | preview (APK) |
-
-## How to Download APK
-
-1. Open the build link above
-2. Wait for status to turn green (✅ finished)
-3. Click **"Download"** to get the APK file
-4. Transfer to Android device and install
+1. Download APK: https://expo.dev/artifacts/eas/aUKWciHPJy2NSGRMJ1yEUR.apk
+2. Transfer to Android device
+3. Enable "Install from unknown sources" in Android settings
+4. Install the APK file
 
 ## APK connects to
 
 Railway production API: `https://nabd-app-production-493a.up.railway.app`
-(runs 24/7 — does not depend on Replit being active)
+- Runs 24/7 — does not depend on Replit being active
+- Login: mohammed@example.com / nabd1234
