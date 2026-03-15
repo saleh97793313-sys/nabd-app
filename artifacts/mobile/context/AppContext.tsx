@@ -425,7 +425,6 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
           return { success: false, error: data.error || "خطأ في التسجيل" };
         }
         const mappedPatient = mapPatientFromApi(data);
-        mappedPatient.points = 100;
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
         setPatient(mappedPatient);
         setIsGuest(false);

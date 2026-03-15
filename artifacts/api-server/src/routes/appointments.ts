@@ -38,8 +38,9 @@ router.get("/appointments", async (_req, res): Promise<void> => {
 router.get("/appointments/patient", async (req, res): Promise<void> => {
   const phone = String(req.query.phone || "");
   if (!phone) { res.status(400).json({ error: "phone query required" }); return; }
-  const all = await db.select().from(appointmentsTable).orderBy(appointmentsTable.createdAt);
-  const filtered = all.filter(a => a.patientPhone === phone);
+  const filtered = await db.select().from(appointmentsTable)
+    .where(eq(appointmentsTable.patientPhone, phone))
+    .orderBy(appointmentsTable.createdAt);
   res.json(filtered.map(s));
 });
 
