@@ -35,3 +35,4 @@ channel = "stable-25_05"
 [userenv.shared]
 ADMIN_EMAIL = "Saleh97793313@gmail.com"
 ADMIN_PASSWORD = "nabd@2026"
+EXPO_TOKEN = "kRX86A8mXuq8wYaf8vvoXpmYM2ZL1vffmi6iksHE"
