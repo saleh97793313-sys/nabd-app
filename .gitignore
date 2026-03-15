@@ -47,3 +47,9 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# User attached images (may contain sensitive info)
+attached_assets/
+
+# User attached images (may contain sensitive info)
+attached_assets/
