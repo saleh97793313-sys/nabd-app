@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd lib/db && npx drizzle-kit push --force --config ./drizzle.config.ts && cd ../.. && node artifacts/api-server/dist/index.cjs"
+startCommand = "node artifacts/api-server/dist/index.cjs"
 healthcheckPath = "/api/healthz"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
