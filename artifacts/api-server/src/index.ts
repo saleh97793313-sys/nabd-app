@@ -1,11 +1,28 @@
 import app from "./app";
+import bcrypt from "bcryptjs";
+import { isNull, eq } from "drizzle-orm";
 import { db, clinicsTable, offersTable, appointmentsTable, discountsTable, patientsTable } from "@workspace/db";
+
+async function fixMissingPasswords() {
+  try {
+    const noPassword = await db.select().from(patientsTable).where(isNull(patientsTable.passwordHash));
+    if (noPassword.length === 0) return;
+    const hash = await bcrypt.hash("nabd1234", 10);
+    for (const p of noPassword) {
+      await db.update(patientsTable).set({ passwordHash: hash }).where(eq(patientsTable.id, p.id));
+    }
+    console.log(`✅ Fixed ${noPassword.length} patients missing passwords.`);
+  } catch (err) {
+    console.error("Fix passwords failed:", err);
+  }
+}
 
 async function autoSeed() {
   try {
     const existing = await db.select().from(clinicsTable);
     if (existing.length > 0) {
       console.log("Database already seeded, skipping auto-seed.");
+      await fixMissingPasswords();
       return;
     }
     console.log("Auto-seeding database...");
@@ -26,11 +43,12 @@ async function autoSeed() {
       { clinicId: clinics[4].id, title: "Family Vaccination Package", titleAr: "باقة تطعيمات عائلية", description: "Complete vaccination package for the whole family", descriptionAr: "باقة تطعيمات شاملة للعائلة بأكملها", originalPrice: 200, discountedPrice: 140, pointsRequired: 1200, category: "تطعيمات", isFeatured: false, isActive: true, expiryDate: "2026-10-31", usageCount: 19 },
     ]);
 
+    const testPasswordHash = await bcrypt.hash("nabd1234", 10);
     await db.insert(patientsTable).values([
-      { name: "محمد بن علي الراشدي", phone: "+968 9912 3456", email: "mohammed@example.com", level: "silver", points: 1350, totalVisits: 8 },
-      { name: "فاطمة الزهراء البلوشي", phone: "+968 9923 4567", email: "fatima@example.com", level: "gold", points: 4200, totalVisits: 22 },
-      { name: "أحمد سالم الحارثي", phone: "+968 9934 5678", email: "ahmed@example.com", level: "bronze", points: 450, totalVisits: 3 },
-      { name: "مريم خالد العمري", phone: "+968 9945 6789", email: "mariam@example.com", level: "platinum", points: 8900, totalVisits: 41 },
+      { name: "محمد بن علي الراشدي", phone: "+968 9912 3456", email: "mohammed@example.com", passwordHash: testPasswordHash, level: "silver", points: 1350, totalVisits: 8 },
+      { name: "فاطمة الزهراء البلوشي", phone: "+968 9923 4567", email: "fatima@example.com", passwordHash: testPasswordHash, level: "gold", points: 4200, totalVisits: 22 },
+      { name: "أحمد سالم الحارثي", phone: "+968 9934 5678", email: "ahmed@example.com", passwordHash: testPasswordHash, level: "bronze", points: 450, totalVisits: 3 },
+      { name: "مريم خالد العمري", phone: "+968 9945 6789", email: "mariam@example.com", passwordHash: testPasswordHash, level: "platinum", points: 8900, totalVisits: 41 },
     ]);
 
     await db.insert(appointmentsTable).values([

@@ -8,6 +8,7 @@ export type UserRole = "patient" | "clinic";
 export type Patient = {
   id: string;
   name: string;
+  email: string;
   phone: string;
   points: number;
   totalVisits: number;
@@ -110,39 +111,6 @@ const LEVEL_COLORS: Record<string, string> = {
 
 const AUTH_STORAGE_KEY = "@healthpoints_auth";
 
-const MOCK_APPOINTMENTS: Appointment[] = [
-  {
-    id: "a1",
-    clinicId: "1",
-    clinicName: "مركز رويال للعلاج الطبيعي",
-    clinicSpecialty: "العلاج الطبيعي",
-    date: "2026-03-18",
-    time: "10:00 ص",
-    status: "upcoming",
-    notes: "جلسة العلاج الثالثة - ألم الظهر",
-  },
-  {
-    id: "a2",
-    clinicId: "2",
-    clinicName: "عيادة الشفاء للأسنان",
-    clinicSpecialty: "طب الأسنان",
-    date: "2026-03-10",
-    time: "2:30 م",
-    status: "completed",
-    pointsEarned: 120,
-  },
-  {
-    id: "a3",
-    clinicId: "4",
-    clinicName: "معهد عيون عُمان",
-    clinicSpecialty: "طب العيون",
-    date: "2026-03-05",
-    time: "8:00 ص",
-    status: "completed",
-    pointsEarned: 180,
-  },
-];
-
 const NOTIF_TYPE_MAP: Record<string, Notification["type"]> = {
   info: "points",
   offer: "offer",
@@ -155,6 +123,7 @@ type AuthResult = { success: true } | { success: false; error: string };
 const GUEST_PATIENT: Patient = {
   id: "guest",
   name: "زائر",
+  email: "",
   phone: "",
   points: 0,
   totalVisits: 0,
@@ -196,6 +165,7 @@ type AppContextType = {
 const DEFAULT_PATIENT: Patient = {
   id: "",
   name: "",
+  email: "",
   phone: "",
   points: 0,
   totalVisits: 0,
@@ -208,6 +178,7 @@ function mapPatientFromApi(data: any): Patient {
   return {
     id: String(data.id),
     name: data.name,
+    email: data.email || "",
     phone: data.phone,
     points: data.points ?? 0,
     totalVisits: data.totalVisits ?? 0,
