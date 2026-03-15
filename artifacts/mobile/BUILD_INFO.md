@@ -54,4 +54,4 @@ Application Archive URL: https://expo.dev/artifacts/eas/aUKWciHPJy2NSGRMJ1yEUR.a
 
 Railway production API: `https://nabd-app-production-493a.up.railway.app`
 - Runs 24/7 — does not depend on Replit being active
-- Login: mohammed@example.com / nabd1234
+- Use test credentials from the secure environment store (do not commit credentials here)
