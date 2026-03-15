@@ -73,7 +73,17 @@ export default function RegisterScreen() {
     label, value, onChange, placeholder, keyboardType = "default",
     secureTextEntry = false, showToggle = false, onToggle,
     autoComplete,
-  }: any) => (
+  }: {
+    label: string;
+    value: string;
+    onChange: (text: string) => void;
+    placeholder: string;
+    keyboardType?: string;
+    secureTextEntry?: boolean;
+    showToggle?: boolean;
+    onToggle?: () => void;
+    autoComplete?: string;
+  }) => (
     <View style={styles.fieldGroup}>
       <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
       <View style={[styles.inputRow, { backgroundColor: colors.background, borderColor: colors.border }]}>

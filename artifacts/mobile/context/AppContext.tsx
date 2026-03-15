@@ -174,7 +174,18 @@ const DEFAULT_PATIENT: Patient = {
   conditions: [],
 };
 
-function mapPatientFromApi(data: any): Patient {
+type ApiPatientResponse = {
+  id: number | string;
+  name: string;
+  email?: string;
+  phone: string;
+  points?: number;
+  totalVisits?: number;
+  level?: string;
+  joinedAt?: string;
+};
+
+function mapPatientFromApi(data: ApiPatientResponse): Patient {
   return {
     id: String(data.id),
     name: data.name,
@@ -441,8 +452,10 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       setPatient(GUEST_PATIENT);
       setIsGuest(true);
       setIsAuthenticated(true);
+      setApiAppointments([]);
       setNotifications([]);
       setReadIds(new Set());
+      setDiscountsUsed(new Set());
     };
 
     const enterAsGuest = () => {
