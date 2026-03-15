@@ -13,7 +13,10 @@
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "ios": { "distribution": "internal" }
+      "ios": { "distribution": "internal" },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://nabd-app-production-493a.up.railway.app/api"
+      }
     },
     "production": {
       "android": { "buildType": "app-bundle" },

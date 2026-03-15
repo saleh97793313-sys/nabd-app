@@ -101,7 +101,7 @@ function getApiBase(): string {
   if (domain) {
     return `https://${domain}/api`;
   }
-  return "/api";
+  return "https://nabd-app-production-493a.up.railway.app/api";
 }
 
 const LEVEL_COLORS: Record<string, string> = {

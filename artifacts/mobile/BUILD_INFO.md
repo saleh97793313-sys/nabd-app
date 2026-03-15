@@ -1,16 +1,26 @@
 # EAS Build Info — نبض (Nabd) Android APK
 
-## Latest Build ✅ COMPLETED
+## Latest Build ✅ COMPLETED (with Railway API fix)
+
+| Field | Value |
+|-------|-------|
+| Build ID | `dc83de3c-d910-4877-90b9-44a6dec11a34` |
+| Platform | Android |
+| Profile | preview (APK) |
+| Status | ✅ finished |
+| Finished at | 2026-03-15 23:51:04 |
+| Build Logs | https://expo.dev/accounts/saleh99/projects/nabd-app/builds/dc83de3c-d910-4877-90b9-44a6dec11a34 |
+| **APK Download URL** | **https://expo.dev/artifacts/eas/temddN3KUxwrJfpjPDpmsY.apk** |
+
+**Fix applied:** Added Railway API URL as hardcoded fallback in `getApiBase()` and in `eas.json` preview env config. Clinics and offers will now load correctly.
+
+## Previous Build
 
 | Field | Value |
 |-------|-------|
 | Build ID | `503fffe0-14dc-4abf-b13d-eeeca27a8851` |
-| Platform | Android |
-| Profile | preview (APK) |
-| Status | ✅ finished |
-| Finished at | 2026-03-15 23:28:10 |
-| Build Logs | https://expo.dev/accounts/saleh99/projects/nabd-app/builds/503fffe0-14dc-4abf-b13d-eeeca27a8851 |
-| **APK Download URL** | **https://expo.dev/artifacts/eas/aUKWciHPJy2NSGRMJ1yEUR.apk** |
+| Status | ✅ finished (but missing API URL — clinics/offers don't load) |
+| APK URL | https://expo.dev/artifacts/eas/aUKWciHPJy2NSGRMJ1yEUR.apk |
 
 ## EXPO_TOKEN Verification
 
