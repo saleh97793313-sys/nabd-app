@@ -21,6 +21,7 @@ export type Clinic = {
   id: string;
   name: string;
   specialty: string;
+  specialtyEn: string;
   rating: number;
   totalPatients: number;
   address: string;
@@ -33,6 +34,7 @@ export type Clinic = {
   descriptionAr?: string;
   latitude?: number | null;
   longitude?: number | null;
+  pointsPerVisit: number;
 };
 
 export type Offer = {
@@ -150,7 +152,7 @@ type AppContextType = {
   discountsLoading: boolean;
   unreadCount: number;
   markNotificationRead: (id: string) => void;
-  bookAppointment: (clinicId: string, details?: { service: string; serviceAr: string; date: string; time: string; notes?: string }) => void;
+  bookAppointment: (clinicId: string, details?: { service: string; serviceAr: string; date: string; time: string; notes?: string }) => Promise<{ success: boolean; error?: string }>;
   redeemOffer: (offerId: string) => void;
   markDiscountUsed: (id: string) => void;
   refreshClinics: () => void;
@@ -253,6 +255,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
           id: String(c.id),
           name: c.nameAr || c.name,
           specialty: c.specialtyAr || c.specialty,
+          specialtyEn: c.specialty || "",
           rating: c.rating ?? 4.5,
           totalPatients: c.totalPatients ?? 0,
           address: c.addressAr || c.address,
@@ -265,6 +268,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
           image: c.imageUrl,
           latitude: c.latitude ?? null,
           longitude: c.longitude ?? null,
+          pointsPerVisit: c.pointsPerVisit ?? 100,
         }));
         setClinics(mapped);
       } catch (e) {
@@ -473,10 +477,12 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
 
     const bookAppointment = async (clinicId: string, details?: {
       service: string; serviceAr: string; date: string; time: string; notes?: string;
-    }) => {
-      if (!patient.phone || patient.id === "guest") return;
+    }): Promise<{ success: boolean; error?: string }> => {
+      if (!patient.phone || patient.id === "guest") {
+        return { success: false, error: "يرجى تسجيل الدخول أولاً" };
+      }
       try {
-        await fetch(`${getApiBase()}/appointments`, {
+        const res = await fetch(`${getApiBase()}/appointments`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -490,10 +496,15 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
             notes: details?.notes,
           }),
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          return { success: false, error: data.error || "فشل في حجز الموعد" };
+        }
         fetchAppointments(patient.phone);
         setPatient((prev) => ({ ...prev, totalVisits: prev.totalVisits + 1 }));
+        return { success: true };
       } catch {
-        setPatient((prev) => ({ ...prev, totalVisits: prev.totalVisits + 1 }));
+        return { success: false, error: "خطأ في الاتصال بالخادم" };
       }
     };
 

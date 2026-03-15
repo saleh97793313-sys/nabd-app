@@ -103,6 +103,10 @@ Expo React Native mobile app for patients. Connects to the API via `EXPO_PUBLIC_
 - Map tab uses `expo-location` for user positioning and shows clinics sorted by distance
 - Clinics with lat/lng show distance and a "الاتجاهات" (Directions) button
 - Clinic detail page has a "عرض على خرائط جوجل" card that opens Google Maps with directions
+- Clinic detail page has a sticky bottom bar with "احجز موعد" (Book Appointment) button and points-per-visit badge
+- BookingModal component: service selection (mapped to clinic specialty), 7-day date picker, time slots grid, notes input, points earned badge, success confirmation state
+- Guest users are redirected to login when pressing the book button; authenticated users see the booking modal
+- `bookAppointment()` in AppContext returns `{success, error}` and POSTs to `/api/appointments`
 - Profile tab has a digital loyalty card with QR code (patient phone), level badge, and points display
 - Tapping the QR opens full-screen QR modal for easy scanning at clinics
 - "سجل النقاط" menu item navigates to `/points-history` screen showing all points transactions

@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Linking,
   Platform,
@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import { useAppContext } from "@/context/AppContext";
 import { OfferCard } from "@/components/OfferCard";
+import { BookingModal } from "@/components/BookingModal";
 
 export default function ClinicDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,13 +24,22 @@ export default function ClinicDetailScreen() {
   const isDark = colorScheme === "dark";
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
-  const { clinics, offers } = useAppContext();
+  const { clinics, offers, bookAppointment, isGuest } = useAppContext();
+  const [showBooking, setShowBooking] = useState(false);
 
   const clinic = clinics.find((c) => c.id === id);
-  if (!clinic) return null;
+  if (!clinic) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }]}>
+        <Feather name="loader" size={24} color={colors.textMuted} />
+        <Text style={{ color: colors.textMuted, marginTop: 12, fontFamily: "Inter_400Regular" }}>جارٍ التحميل...</Text>
+      </View>
+    );
+  }
 
   const clinicOffers = offers.filter((o) => o.clinicId === id);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const initials = clinic.name
     .split(" ")
@@ -37,9 +47,18 @@ export default function ClinicDetailScreen() {
     .map((w) => w[0])
     .join("");
 
+  const pointsPerVisit = clinic.pointsPerVisit || 100;
+
+  const handleBookPress = () => {
+    if (isGuest) {
+      router.push("/auth/login");
+      return;
+    }
+    setShowBooking(true);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <Pressable
           onPress={() => router.back()}
@@ -56,10 +75,9 @@ export default function ClinicDetailScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: Platform.OS === "web" ? 100 : 100,
+          paddingBottom: 100 + bottomPad,
         }}
       >
-        {/* Clinic Hero */}
         <View style={styles.clinicHero}>
           <View style={[styles.heroAvatar, { backgroundColor: colors.tint + "15" }]}>
             <Text style={[styles.heroAvatarText, { color: colors.tint }]}>
@@ -94,7 +112,23 @@ export default function ClinicDetailScreen() {
           </View>
         </View>
 
-        {/* Contact */}
+        {clinic.descriptionAr && (
+          <View style={[styles.descCard, { backgroundColor: colors.backgroundCard }]}>
+            <Text style={[styles.descText, { color: colors.textSecondary }]}>
+              {clinic.descriptionAr}
+            </Text>
+          </View>
+        )}
+
+        {clinic.openHours && (
+          <View style={[styles.infoRow, { backgroundColor: colors.backgroundCard }]}>
+            <View style={[styles.infoIcon, { backgroundColor: colors.tint + "15" }]}>
+              <Feather name="clock" size={16} color={colors.tint} />
+            </View>
+            <Text style={[styles.infoText, { color: colors.text }]}>{clinic.openHours}</Text>
+          </View>
+        )}
+
         <View
           style={[styles.contactCard, { backgroundColor: colors.backgroundCard }]}
         >
@@ -116,7 +150,6 @@ export default function ClinicDetailScreen() {
           </View>
         </View>
 
-        {/* Google Maps Location */}
         {clinic.latitude != null && clinic.longitude != null && (
           <Pressable
             onPress={() => {
@@ -146,7 +179,6 @@ export default function ClinicDetailScreen() {
           </Pressable>
         )}
 
-        {/* Offers */}
         {clinicOffers.length > 0 && (
           <>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -164,6 +196,34 @@ export default function ClinicDetailScreen() {
           </>
         )}
       </ScrollView>
+
+      <View style={[styles.bottomBar, { backgroundColor: colors.backgroundCard, paddingBottom: bottomPad + 12 }]}>
+        <View style={styles.bottomBarInner}>
+          <View style={styles.bottomInfo}>
+            <View style={[styles.pointsChip, { backgroundColor: "#FFB800" + "15" }]}>
+              <Feather name="award" size={14} color="#FFB800" />
+              <Text style={styles.pointsChipText}>{pointsPerVisit} نقطة</Text>
+            </View>
+            <Text style={[styles.bottomLabel, { color: colors.textMuted }]}>لكل زيارة</Text>
+          </View>
+          <Pressable
+            style={[styles.bookBtn, { backgroundColor: colors.tint }]}
+            onPress={handleBookPress}
+          >
+            <Feather name="calendar" size={18} color="#fff" />
+            <Text style={styles.bookBtnText}>احجز موعد</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <BookingModal
+        visible={showBooking}
+        clinic={clinic}
+        colors={colors}
+        pointsPerVisit={pointsPerVisit}
+        onClose={() => setShowBooking(false)}
+        onBook={(details) => bookAppointment(clinic.id, details)}
+      />
     </View>
   );
 }
@@ -243,6 +303,40 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
   },
+  descCard: {
+    marginHorizontal: 20,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  descText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    textAlign: "right",
+    lineHeight: 22,
+  },
+  infoRow: {
+    marginHorizontal: 20,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 12,
+  },
+  infoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoText: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+    flex: 1,
+    textAlign: "right",
+  },
   contactCard: {
     marginHorizontal: 20,
     borderRadius: 20,
@@ -320,5 +414,57 @@ const styles = StyleSheet.create({
     textAlign: "right",
     paddingHorizontal: 20,
     marginBottom: 12,
+  },
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  bottomBarInner: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  bottomInfo: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  pointsChip: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  pointsChipText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    color: "#B8860B",
+  },
+  bottomLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+  },
+  bookBtn: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 16,
+  },
+  bookBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
   },
 });
