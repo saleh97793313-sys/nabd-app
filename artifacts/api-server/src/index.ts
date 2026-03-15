@@ -1,19 +1,49 @@
 import app from "./app";
 import bcrypt from "bcryptjs";
-import { isNull, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, clinicsTable, offersTable, appointmentsTable, discountsTable, patientsTable } from "@workspace/db";
 
-async function fixMissingPasswords() {
+const KNOWN_TEST_ACCOUNTS = [
+  { name: "محمد بن علي الراشدي", phone: "+968 9912 3456", email: "mohammed@example.com" },
+  { name: "فاطمة الزهراء البلوشي", phone: "+968 9923 4567", email: "fatima@example.com" },
+  { name: "أحمد سالم الحارثي", phone: "+968 9934 5678", email: "ahmed@example.com" },
+  { name: "مريم خالد العمري", phone: "+968 9945 6789", email: "mariam@example.com" },
+];
+
+async function fixSeededPatients() {
   try {
-    const noPassword = await db.select().from(patientsTable).where(isNull(patientsTable.passwordHash));
-    if (noPassword.length === 0) return;
+    const allPatients = await db.select().from(patientsTable);
+    if (allPatients.length === 0) return;
+
     const hash = await bcrypt.hash("nabd1234", 10);
-    for (const p of noPassword) {
-      await db.update(patientsTable).set({ passwordHash: hash }).where(eq(patientsTable.id, p.id));
+    let fixedCount = 0;
+
+    for (const p of allPatients) {
+      const updates: Record<string, string> = {};
+
+      if (!p.passwordHash) {
+        updates.passwordHash = hash;
+      }
+
+      const knownAccount = KNOWN_TEST_ACCOUNTS.find(
+        (k) => k.email === p.email || k.phone === p.phone || k.name === p.name
+      );
+      if (knownAccount) {
+        if (!p.email) updates.email = knownAccount.email;
+        if (!p.phone) updates.phone = knownAccount.phone;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await db.update(patientsTable).set(updates).where(eq(patientsTable.id, p.id));
+        fixedCount++;
+      }
     }
-    console.log(`✅ Fixed ${noPassword.length} patients missing passwords.`);
+
+    if (fixedCount > 0) {
+      console.log(`✅ Fixed ${fixedCount} patients (passwords/email/phone).`);
+    }
   } catch (err) {
-    console.error("Fix passwords failed:", err);
+    console.error("Fix seeded patients failed:", err);
   }
 }
 
@@ -22,7 +52,7 @@ async function autoSeed() {
     const existing = await db.select().from(clinicsTable);
     if (existing.length > 0) {
       console.log("Database already seeded, skipping auto-seed.");
-      await fixMissingPasswords();
+      await fixSeededPatients();
       return;
     }
     console.log("Auto-seeding database...");
