@@ -2,102 +2,67 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
-  Dimensions,
   Easing,
   Image,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
-
-const { width: W, height: H } = Dimensions.get("window");
 
 const TEAL = "#05C4C2";
 const NAVY_DARK = "#0A1628";
 const NAVY = "#1A3A5C";
 
-// Responsive sizes based on screen width
-const LOGO_SIZE = Math.round(W * 0.48);
-const RING_SIZE = Math.round(W * 0.48);
-const LOGO_RADIUS = Math.round(LOGO_SIZE * 0.26);
-
 export function SplashLoader() {
-  const pulseScale = useRef(new Animated.Value(1)).current;
+  const { width: W, height: H } = useWindowDimensions();
 
+  const LOGO = Math.round(W * 0.50);
+  const RADIUS = Math.round(LOGO * 0.24);
+
+  const pulseScale = useRef(new Animated.Value(1)).current;
   const ring1Opacity = useRef(new Animated.Value(0)).current;
   const ring1Scale = useRef(new Animated.Value(1)).current;
   const ring2Opacity = useRef(new Animated.Value(0)).current;
   const ring2Scale = useRef(new Animated.Value(1)).current;
-
   const dot1Y = useRef(new Animated.Value(0)).current;
   const dot2Y = useRef(new Animated.Value(0)).current;
   const dot3Y = useRef(new Animated.Value(0)).current;
   const dotsOpacity = useRef(new Animated.Value(0)).current;
-
-  const shimmerX = useRef(new Animated.Value(-LOGO_SIZE)).current;
+  const shimmerX = useRef(new Animated.Value(-LOGO)).current;
 
   useEffect(() => {
-    // Gentle pulse
+    // Pulse
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseScale, {
-          toValue: 1.06,
-          duration: 1000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseScale, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseScale, { toValue: 1.06, duration: 1000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pulseScale, { toValue: 1, duration: 1000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])
     ).start();
 
-    // Ripple ring 1
+    // Ripple 1
     Animated.loop(
       Animated.sequence([
         Animated.timing(ring1Scale, { toValue: 1, duration: 0, useNativeDriver: true }),
         Animated.timing(ring1Opacity, { toValue: 0.6, duration: 100, useNativeDriver: true }),
         Animated.parallel([
-          Animated.timing(ring1Opacity, {
-            toValue: 0,
-            duration: 1400,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(ring1Scale, {
-            toValue: 2.0,
-            duration: 1400,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-          }),
+          Animated.timing(ring1Opacity, { toValue: 0, duration: 1400, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+          Animated.timing(ring1Scale, { toValue: 2.0, duration: 1400, easing: Easing.out(Easing.ease), useNativeDriver: true }),
         ]),
         Animated.delay(600),
       ])
     ).start();
 
-    // Ripple ring 2 (offset)
+    // Ripple 2 (offset)
     Animated.sequence([
-      Animated.delay(800),
+      Animated.delay(750),
       Animated.loop(
         Animated.sequence([
           Animated.timing(ring2Scale, { toValue: 1, duration: 0, useNativeDriver: true }),
           Animated.timing(ring2Opacity, { toValue: 0.45, duration: 100, useNativeDriver: true }),
           Animated.parallel([
-            Animated.timing(ring2Opacity, {
-              toValue: 0,
-              duration: 1400,
-              easing: Easing.out(Easing.ease),
-              useNativeDriver: true,
-            }),
-            Animated.timing(ring2Scale, {
-              toValue: 2.0,
-              duration: 1400,
-              easing: Easing.out(Easing.ease),
-              useNativeDriver: true,
-            }),
+            Animated.timing(ring2Opacity, { toValue: 0, duration: 1400, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+            Animated.timing(ring2Scale, { toValue: 2.0, duration: 1400, easing: Easing.out(Easing.ease), useNativeDriver: true }),
           ]),
           Animated.delay(600),
         ])
@@ -107,13 +72,8 @@ export function SplashLoader() {
     // Shimmer
     Animated.loop(
       Animated.sequence([
-        Animated.timing(shimmerX, {
-          toValue: LOGO_SIZE,
-          duration: 900,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerX, { toValue: -LOGO_SIZE, duration: 0, useNativeDriver: true }),
+        Animated.timing(shimmerX, { toValue: LOGO, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(shimmerX, { toValue: -LOGO, duration: 0, useNativeDriver: true }),
         Animated.delay(3000),
       ])
     ).start();
@@ -129,18 +89,8 @@ export function SplashLoader() {
         Animated.delay(900 + delay),
         Animated.loop(
           Animated.sequence([
-            Animated.timing(dot, {
-              toValue: -14,
-              duration: 300,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-            Animated.timing(dot, {
-              toValue: 0,
-              duration: 300,
-              easing: Easing.in(Easing.quad),
-              useNativeDriver: true,
-            }),
+            Animated.timing(dot, { toValue: -14, duration: 300, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+            Animated.timing(dot, { toValue: 0, duration: 300, easing: Easing.in(Easing.quad), useNativeDriver: true }),
             Animated.delay(500),
           ])
         ),
@@ -158,86 +108,80 @@ export function SplashLoader() {
       start={{ x: 0.3, y: 0 }}
       end={{ x: 0.7, y: 1 }}
     >
-      {/* Top spacer */}
-      <View style={{ flex: 1 }} />
+      {/* ── Logo area ── */}
+      <View style={[styles.logoArea, { width: LOGO * 2, height: LOGO * 2 }]}>
 
-      {/* Logo area */}
-      <View style={styles.logoArea}>
-        <Animated.View
-          style={[
-            styles.rippleRing,
-            { opacity: ring1Opacity, transform: [{ scale: ring1Scale }] },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.rippleRing,
-            { opacity: ring2Opacity, transform: [{ scale: ring2Scale }] },
-          ]}
-        />
+        <Animated.View style={[
+          styles.rippleRing,
+          { width: LOGO, height: LOGO, borderRadius: RADIUS },
+          { opacity: ring1Opacity, transform: [{ scale: ring1Scale }] },
+        ]} />
 
-        <Animated.View
-          style={[styles.logoWrapper, { transform: [{ scale: pulseScale }] }]}
-        >
+        <Animated.View style={[
+          styles.rippleRing,
+          { width: LOGO, height: LOGO, borderRadius: RADIUS },
+          { opacity: ring2Opacity, transform: [{ scale: ring2Scale }] },
+        ]} />
+
+        <Animated.View style={[
+          styles.logoWrapper,
+          { width: LOGO, height: LOGO, borderRadius: RADIUS },
+          { transform: [{ scale: pulseScale }] },
+        ]}>
           <Image
             source={require("@/assets/images/icon.png")}
-            style={styles.logoImage}
+            style={{ width: LOGO, height: LOGO }}
             resizeMode="cover"
           />
-          <Animated.View
-            style={[styles.shimmer, { transform: [{ translateX: shimmerX }] }]}
-          />
+          <Animated.View style={[
+            styles.shimmer,
+            { width: LOGO * 0.28 },
+            { transform: [{ translateX: shimmerX }] },
+          ]} />
         </Animated.View>
       </View>
 
-      {/* Text block */}
+      {/* ── Text ── */}
       <View style={styles.textBlock}>
-        <Text style={styles.appName}>Ocure</Text>
-        <View style={styles.separator} />
-        <Text style={styles.tagline}>منصة الولاء الصحي</Text>
+        <Text style={[styles.appName, { fontSize: Math.round(W * 0.15) }]}>Ocure</Text>
+        <View style={[styles.separator, { width: W * 0.14 }]} />
+        <Text style={[styles.tagline, { fontSize: Math.round(W * 0.048) }]}>
+          منصة الولاء الصحي
+        </Text>
       </View>
 
-      {/* Bottom spacer + dots */}
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", paddingBottom: H * 0.12 }}>
-        <Animated.View style={[styles.dotsRow, { opacity: dotsOpacity }]}>
-          {[dot1Y, dot2Y, dot3Y].map((dotY, i) => (
-            <Animated.View
-              key={i}
-              style={[styles.dot, { transform: [{ translateY: dotY }] }]}
-            />
-          ))}
-        </Animated.View>
-      </View>
+      {/* ── Dots ── */}
+      <Animated.View style={[styles.dotsRow, { marginTop: H * 0.06, opacity: dotsOpacity }]}>
+        {[dot1Y, dot2Y, dot3Y].map((dotY, i) => (
+          <Animated.View key={i} style={[styles.dot, { transform: [{ translateY: dotY }] }]} />
+        ))}
+      </Animated.View>
 
-      {/* Footer */}
-      <Text style={styles.footer}>© 2026 Ocure</Text>
+      {/* ── Footer ── */}
+      <Text style={[styles.footer, { bottom: H * 0.05 }]}>© 2026 Ocure</Text>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "center",
-  },
-  logoArea: {
-    width: LOGO_SIZE * 2,
-    height: LOGO_SIZE * 2,
+    // Absolute fill — covers the FULL SCREEN regardless of parent container
+    ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 999,
+  },
+  logoArea: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
   },
   rippleRing: {
     position: "absolute",
-    width: RING_SIZE,
-    height: RING_SIZE,
-    borderRadius: LOGO_RADIUS,
     borderWidth: 2,
     borderColor: TEAL,
   },
   logoWrapper: {
-    width: LOGO_SIZE,
-    height: LOGO_SIZE,
-    borderRadius: LOGO_RADIUS,
     overflow: "hidden",
     shadowColor: TEAL,
     shadowOffset: { width: 0, height: 0 },
@@ -245,39 +189,30 @@ const styles = StyleSheet.create({
     shadowRadius: 40,
     elevation: 24,
   },
-  logoImage: {
-    width: LOGO_SIZE,
-    height: LOGO_SIZE,
-  },
   shimmer: {
     position: "absolute",
     top: 0,
     bottom: 0,
-    width: LOGO_SIZE * 0.3,
     backgroundColor: "rgba(255,255,255,0.2)",
     transform: [{ skewX: "-20deg" }],
   },
   textBlock: {
     alignItems: "center",
-    gap: 14,
-    marginTop: 10,
+    gap: 12,
   },
   appName: {
-    fontSize: Math.round(W * 0.16),
     fontWeight: "800",
     color: "#FFFFFF",
     letterSpacing: 4,
   },
   separator: {
-    width: W * 0.13,
     height: 3,
     borderRadius: 2,
     backgroundColor: TEAL,
   },
   tagline: {
-    fontSize: Math.round(W * 0.05),
     fontWeight: "400",
-    color: "rgba(255,255,255,0.65)",
+    color: "rgba(255,255,255,0.7)",
     letterSpacing: 1.5,
     textAlign: "center",
   },
@@ -293,7 +228,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: H * 0.05,
     fontSize: 13,
     color: "rgba(255,255,255,0.3)",
     letterSpacing: 1,

@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -34,10 +34,16 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const nameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => nameRef.current?.focus(), 350);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !phone.trim() || !password.trim()) {
@@ -113,6 +119,7 @@ export default function RegisterScreen() {
               <Text style={[styles.label, { color: colors.textSecondary }]}>الاسم الكامل</Text>
               <View style={fieldStyle}>
                 <TextInput
+                  ref={nameRef}
                   style={inputStyle}
                   value={name}
                   onChangeText={setName}
@@ -122,7 +129,6 @@ export default function RegisterScreen() {
                   autoComplete="name"
                   autoCapitalize="words"
                   returnKeyType="next"
-                  autoFocus
                   onSubmitEditing={() => emailRef.current?.focus()}
                   blurOnSubmit={false}
                 />
