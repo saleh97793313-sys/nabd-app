@@ -44,6 +44,7 @@ function AuthGate() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="auth/login" options={{ animation: "slide_from_bottom", presentation: "modal" }} />
       <Stack.Screen name="auth/register" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="auth/verify" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="offer/[id]" options={{ presentation: "modal" }} />
       <Stack.Screen name="clinic/[id]" options={{ presentation: "card" }} />
       <Stack.Screen name="notifications" options={{ presentation: "card" }} />

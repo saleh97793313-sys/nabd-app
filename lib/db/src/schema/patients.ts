@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -13,6 +13,7 @@ export const patientsTable = pgTable("patients", {
   totalVisits: integer("total_visits").notNull().default(0),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
   lastVisit: timestamp("last_visit", { withTimezone: true }),
+  isEmailVerified: boolean("is_email_verified").notNull().default(false),
 });
 
 export const insertPatientSchema = createInsertSchema(patientsTable).omit({ id: true, joinedAt: true });

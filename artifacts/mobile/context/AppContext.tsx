@@ -120,7 +120,10 @@ const NOTIF_TYPE_MAP: Record<string, Notification["type"]> = {
   appointment: "appointment",
 };
 
-type AuthResult = { success: true } | { success: false; error: string };
+type AuthResult =
+  | { success: true }
+  | { success: false; error: string }
+  | { success: false; requiresVerification: true; email: string; name: string; error: string };
 
 const GUEST_PATIENT: Patient = {
   id: "guest",
@@ -162,6 +165,8 @@ type AppContextType = {
   refreshDiscounts: () => void;
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (name: string, email: string, phone: string, password: string) => Promise<AuthResult>;
+  verifyOtp: (email: string, code: string) => Promise<AuthResult>;
+  sendOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   enterAsGuest: () => void;
 };
@@ -408,6 +413,16 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       isUsed: discountsUsed.has(d.id),
     }));
 
+    const completeLogin = async (data: Record<string, unknown>) => {
+      const mappedPatient = mapPatientFromApi(data as ApiPatientResponse);
+      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
+      setPatient(mappedPatient);
+      setIsGuest(false);
+      setIsAuthenticated(true);
+      fetchAppointments(mappedPatient.phone);
+      fetchNotifications(mappedPatient.level);
+    };
+
     const login = async (email: string, password: string): Promise<AuthResult> => {
       try {
         const res = await fetch(`${getApiBase()}/auth/login`, {
@@ -416,16 +431,13 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
           body: JSON.stringify({ email, password }),
         });
         const data = await res.json();
+        if (res.status === 403 && data.requiresVerification) {
+          return { success: false, requiresVerification: true, email: data.email, name: data.name, error: data.error };
+        }
         if (!res.ok) {
           return { success: false, error: data.error || "خطأ في تسجيل الدخول" };
         }
-        const mappedPatient = mapPatientFromApi(data);
-        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
-        setPatient(mappedPatient);
-        setIsGuest(false);
-        setIsAuthenticated(true);
-        fetchAppointments(mappedPatient.phone);
-        fetchNotifications(mappedPatient.level);
+        await completeLogin(data);
         return { success: true };
       } catch {
         return { success: false, error: "خطأ في الاتصال بالخادم" };
@@ -448,12 +460,39 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
         if (!res.ok) {
           return { success: false, error: data.error || "خطأ في التسجيل" };
         }
-        const mappedPatient = mapPatientFromApi(data);
-        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mappedPatient));
-        setPatient(mappedPatient);
-        setIsGuest(false);
-        setIsAuthenticated(true);
-        fetchNotifications(mappedPatient.level || "bronze");
+        return { success: false, requiresVerification: true, email: data.email, name: data.name, error: "" };
+      } catch {
+        return { success: false, error: "خطأ في الاتصال بالخادم" };
+      }
+    };
+
+    const verifyOtp = async (email: string, code: string): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${getApiBase()}/auth/verify-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, code }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          return { success: false, error: data.error || "رمز التحقق غير صحيح" };
+        }
+        await completeLogin(data);
+        return { success: true };
+      } catch {
+        return { success: false, error: "خطأ في الاتصال بالخادم" };
+      }
+    };
+
+    const sendOtp = async (email: string): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const res = await fetch(`${getApiBase()}/auth/send-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+        if (!res.ok) return { success: false, error: data.error };
         return { success: true };
       } catch {
         return { success: false, error: "خطأ في الاتصال بالخادم" };
@@ -464,7 +503,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
       setPatient(GUEST_PATIENT);
       setIsGuest(true);
-      setIsAuthenticated(true);
+      setIsAuthenticated(false);
       setApiAppointments([]);
       setNotifications([]);
       setReadIds(new Set());
@@ -474,7 +513,7 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
     const enterAsGuest = () => {
       setPatient(GUEST_PATIENT);
       setIsGuest(true);
-      setIsAuthenticated(true);
+      setIsAuthenticated(false);
     };
 
     const markNotificationRead = (id: string) => {
@@ -563,6 +602,8 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
       refreshDiscounts: fetchDiscounts,
       login,
       register,
+      verifyOtp,
+      sendOtp,
       logout,
       enterAsGuest,
     };

@@ -1,9 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   ActivityIndicator,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -35,6 +34,11 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const emailRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmRef = useRef<TextInput>(null);
+
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !phone.trim() || !password.trim()) {
       setError("يرجى ملء جميع الحقول");
@@ -57,10 +61,13 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       const result = await register(name.trim(), email.trim(), phone.trim(), password);
-      if (result.success) {
-        router.replace("/(tabs)");
-      } else {
-        setError(result.error || "حدث خطأ أثناء التسجيل");
+      if ("requiresVerification" in result && result.requiresVerification) {
+        router.replace({
+          pathname: "/auth/verify",
+          params: { email: result.email, name: result.name },
+        });
+      } else if (!result.success) {
+        setError("error" in result ? result.error : "حدث خطأ أثناء التسجيل");
       }
     } catch {
       setError("خطأ في الاتصال، حاول مجدداً");
@@ -69,44 +76,8 @@ export default function RegisterScreen() {
     }
   };
 
-  const Field = ({
-    label, value, onChange, placeholder, keyboardType = "default",
-    secureTextEntry = false, showToggle = false, onToggle,
-    autoComplete,
-  }: {
-    label: string;
-    value: string;
-    onChange: (text: string) => void;
-    placeholder: string;
-    keyboardType?: string;
-    secureTextEntry?: boolean;
-    showToggle?: boolean;
-    onToggle?: () => void;
-    autoComplete?: string;
-  }) => (
-    <View style={styles.fieldGroup}>
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
-      <View style={[styles.inputRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
-        {showToggle && (
-          <Pressable onPress={onToggle} style={styles.eyeBtn}>
-            <Feather name={secureTextEntry ? "eye" : "eye-off"} size={18} color={colors.textMuted} />
-          </Pressable>
-        )}
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={value}
-          onChangeText={onChange}
-          placeholder={placeholder}
-          placeholderTextColor={colors.textMuted}
-          keyboardType={keyboardType}
-          secureTextEntry={secureTextEntry}
-          textAlign="right"
-          autoCapitalize="none"
-          autoComplete={autoComplete}
-        />
-      </View>
-    </View>
-  );
+  const fieldStyle = [styles.inputRow, { backgroundColor: colors.background, borderColor: colors.border }];
+  const inputStyle = [styles.input, { color: colors.text }];
 
   return (
     <KeyboardAvoidingView
@@ -116,105 +87,172 @@ export default function RegisterScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 },
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.backBtn,
+              { backgroundColor: colors.border, opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
             <Feather name="arrow-left" size={22} color={colors.text} />
           </Pressable>
-          <Image
-            source={require("@/assets/images/icon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View style={styles.titleArea}>
-          <Text style={[styles.title, { color: colors.text }]}>إنشاء حساب جديد</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            انضم إلى منصة الولاء الصحي واحصل على نقاط مع كل زيارة
-          </Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>إنشاء حساب جديد</Text>
+          <View style={{ width: 36 }} />
         </View>
 
         <View style={[styles.card, { backgroundColor: colors.backgroundCard }]}>
           <View style={styles.fields}>
-            <Field
-              label="الاسم الكامل"
-              value={name}
-              onChange={setName}
-              placeholder="محمد بن أحمد الراشدي"
-              autoComplete="name"
-            />
-            <Field
-              label="البريد الإلكتروني"
-              value={email}
-              onChange={setEmail}
-              placeholder="example@email.com"
-              keyboardType="email-address"
-              autoComplete="email"
-            />
-            <Field
-              label="رقم الهاتف"
-              value={phone}
-              onChange={setPhone}
-              placeholder="+968 9XXX XXXX"
-              keyboardType="phone-pad"
-              autoComplete="tel"
-            />
-            <Field
-              label="كلمة السر"
-              value={password}
-              onChange={setPassword}
-              placeholder="••••••••"
-              secureTextEntry={!showPassword}
-              showToggle
-              onToggle={() => setShowPassword(!showPassword)}
-              autoComplete="new-password"
-            />
-            <Field
-              label="تأكيد كلمة السر"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              placeholder="••••••••"
-              secureTextEntry={!showPassword}
-              autoComplete="new-password"
-            />
-
-            {error ? (
-              <View style={[styles.errorBox, { backgroundColor: colors.danger + "15" }]}>
-                <Feather name="alert-circle" size={14} color={colors.danger} />
-                <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
+            {/* الاسم */}
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>الاسم الكامل</Text>
+              <View style={fieldStyle}>
+                <TextInput
+                  style={inputStyle}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="اسمك الكامل"
+                  placeholderTextColor={colors.textMuted}
+                  textAlign="right"
+                  autoComplete="name"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  autoFocus
+                  onSubmitEditing={() => emailRef.current?.focus()}
+                  blurOnSubmit={false}
+                />
+                <Feather name="user" size={18} color={colors.textMuted} style={styles.icon} />
               </View>
-            ) : null}
-
-            <View style={[styles.infoBox, { backgroundColor: colors.tint + "12" }]}>
-              <Feather name="info" size={14} color={colors.tint} />
-              <Text style={[styles.infoText, { color: colors.tint }]}>
-                ستحصل على 100 نقطة ترحيبية عند التسجيل 🎉
-              </Text>
             </View>
 
-            <Pressable
-              style={[styles.registerBtn, { backgroundColor: colors.tint, opacity: loading ? 0.7 : 1 }]}
-              onPress={handleRegister}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.registerBtnText}>إنشاء الحساب</Text>
-              )}
-            </Pressable>
+            {/* البريد */}
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>البريد الإلكتروني</Text>
+              <View style={fieldStyle}>
+                <TextInput
+                  ref={emailRef}
+                  style={inputStyle}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="example@email.com"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  textAlign="right"
+                  autoComplete="email"
+                  returnKeyType="next"
+                  onSubmitEditing={() => phoneRef.current?.focus()}
+                  blurOnSubmit={false}
+                />
+                <Feather name="mail" size={18} color={colors.textMuted} style={styles.icon} />
+              </View>
+            </View>
+
+            {/* الهاتف */}
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>رقم الهاتف</Text>
+              <View style={fieldStyle}>
+                <TextInput
+                  ref={phoneRef}
+                  style={inputStyle}
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="+968 9X XX XXXX"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="phone-pad"
+                  textAlign="right"
+                  autoComplete="tel"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
+                />
+                <Feather name="phone" size={18} color={colors.textMuted} style={styles.icon} />
+              </View>
+            </View>
+
+            {/* كلمة السر */}
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>كلمة السر</Text>
+              <View style={fieldStyle}>
+                <TextInput
+                  ref={passwordRef}
+                  style={inputStyle}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="6 أحرف على الأقل"
+                  placeholderTextColor={colors.textMuted}
+                  secureTextEntry={!showPassword}
+                  textAlign="right"
+                  autoComplete="new-password"
+                  returnKeyType="next"
+                  onSubmitEditing={() => confirmRef.current?.focus()}
+                  blurOnSubmit={false}
+                />
+                <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                  <Feather name={showPassword ? "eye-off" : "eye"} size={18} color={colors.textMuted} />
+                </Pressable>
+              </View>
+            </View>
+
+            {/* تأكيد كلمة السر */}
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>تأكيد كلمة السر</Text>
+              <View style={fieldStyle}>
+                <TextInput
+                  ref={confirmRef}
+                  style={inputStyle}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="أعد كتابة كلمة السر"
+                  placeholderTextColor={colors.textMuted}
+                  secureTextEntry={!showPassword}
+                  textAlign="right"
+                  autoComplete="new-password"
+                  returnKeyType="done"
+                  onSubmitEditing={handleRegister}
+                />
+                <Feather name="lock" size={18} color={colors.textMuted} style={styles.icon} />
+              </View>
+            </View>
           </View>
+
+          {error ? (
+            <View style={[styles.errorBox, { backgroundColor: "#FFF1F0" }]}>
+              <Feather name="alert-circle" size={16} color="#FF4D4F" />
+              <Text style={[styles.errorText, { color: "#FF4D4F" }]}>{error}</Text>
+            </View>
+          ) : null}
+
+          <View style={[styles.infoBox, { backgroundColor: "#F0FDF8" }]}>
+            <Feather name="mail" size={15} color="#00C896" />
+            <Text style={[styles.infoText, { color: "#00C896" }]}>
+              سنرسل رمز تحقق إلى بريدك لتفعيل الحساب
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={handleRegister}
+            disabled={loading}
+            style={({ pressed }) => [
+              styles.registerBtn,
+              { backgroundColor: colors.tint, opacity: pressed || loading ? 0.8 : 1 },
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.registerBtnText}>إنشاء الحساب</Text>
+            )}
+          </Pressable>
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            لديك حساب بالفعل؟{" "}
-          </Text>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>لديك حساب بالفعل؟ </Text>
           <Pressable onPress={() => router.replace("/auth/login")}>
             <Text style={[styles.footerLink, { color: colors.tint }]}>تسجيل الدخول</Text>
           </Pressable>
@@ -225,127 +263,51 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
+  container: { flexGrow: 1, paddingHorizontal: 20 },
   header: {
     flexDirection: "row-reverse",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  backBtn: {
-    padding: 8,
-  },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-  },
-  titleArea: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: "Inter_700Bold",
-    textAlign: "right",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "right",
-    lineHeight: 22,
-  },
-  card: {
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  fields: {
-    gap: 16,
-  },
-  fieldGroup: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    textAlign: "right",
-  },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  card: { borderRadius: 20, padding: 20, marginBottom: 16 },
+  fields: { gap: 14, marginBottom: 16 },
+  fieldGroup: { gap: 6 },
+  label: { fontSize: 13, fontFamily: "Inter_500Medium", textAlign: "right" },
   inputRow: {
-    flexDirection: "row-reverse",
+    flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1.5,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 52,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 50,
   },
-  eyeBtn: {
-    padding: 4,
-    marginRight: 6,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-    height: "100%",
-  },
+  input: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
+  icon: { marginLeft: 8 },
+  eyeBtn: { padding: 4, marginLeft: 4 },
   errorBox: {
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: 8,
     padding: 12,
     borderRadius: 10,
+    marginBottom: 12,
   },
-  errorText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    flex: 1,
-    textAlign: "right",
-  },
+  errorText: { fontSize: 13, fontFamily: "Inter_500Medium", flex: 1, textAlign: "right" },
   infoBox: {
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: 8,
     padding: 12,
     borderRadius: 10,
+    marginBottom: 16,
   },
-  infoText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    flex: 1,
-    textAlign: "right",
-  },
-  registerBtn: {
-    height: 54,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  registerBtnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-  },
-  footer: {
-    flexDirection: "row-reverse",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 24,
-  },
-  footerText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-  },
-  footerLink: {
-    fontSize: 14,
-    fontFamily: "Inter_700Bold",
-  },
+  infoText: { fontSize: 13, fontFamily: "Inter_500Medium", flex: 1, textAlign: "right" },
+  registerBtn: { height: 54, borderRadius: 14, alignItems: "center", justifyContent: "center", marginTop: 4 },
+  registerBtnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
+  footer: { flexDirection: "row-reverse", justifyContent: "center", alignItems: "center", marginTop: 8 },
+  footerText: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  footerLink: { fontSize: 14, fontFamily: "Inter_700Bold" },
 });

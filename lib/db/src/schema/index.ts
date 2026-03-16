@@ -6,3 +6,4 @@ export * from "./patients";
 export * from "./ratings";
 export * from "./pointsLog";
 export * from "./notifications";
+export * from "./otpCodes";

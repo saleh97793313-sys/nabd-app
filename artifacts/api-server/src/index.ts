@@ -8,6 +8,7 @@ const KNOWN_TEST_ACCOUNTS = [
   { name: "فاطمة الزهراء البلوشي", phone: "+968 9923 4567", email: "fatima@example.com" },
   { name: "أحمد سالم الحارثي", phone: "+968 9934 5678", email: "ahmed@example.com" },
   { name: "مريم خالد العمري", phone: "+968 9945 6789", email: "mariam@example.com" },
+  { name: "صالح المالك", phone: "", email: "saleh97793313@gmail.com" },
 ];
 
 async function fixSeededPatients() {
@@ -26,7 +27,6 @@ async function fixSeededPatients() {
       );
 
       if (knownAccount) {
-        // Always reset password for known test accounts to ensure correct hash
         updates.passwordHash = hash;
         if (!p.email) updates.email = knownAccount.email;
         if (!p.phone) updates.phone = knownAccount.phone;
@@ -34,8 +34,11 @@ async function fixSeededPatients() {
         updates.passwordHash = hash;
       }
 
-      if (Object.keys(updates).length > 0) {
-        await db.update(patientsTable).set(updates).where(eq(patientsTable.id, p.id));
+      const shouldVerify = !!knownAccount && !p.isEmailVerified;
+      if (Object.keys(updates).length > 0 || shouldVerify) {
+        await db.update(patientsTable)
+          .set({ ...updates, ...(shouldVerify ? { isEmailVerified: true } : {}) })
+          .where(eq(patientsTable.id, p.id));
         fixedCount++;
       }
     }
@@ -76,10 +79,10 @@ async function autoSeed() {
 
     const testPasswordHash = await bcrypt.hash("nabd1234", 10);
     await db.insert(patientsTable).values([
-      { name: "محمد بن علي الراشدي", phone: "+968 9912 3456", email: "mohammed@example.com", passwordHash: testPasswordHash, level: "silver", points: 1350, totalVisits: 8 },
-      { name: "فاطمة الزهراء البلوشي", phone: "+968 9923 4567", email: "fatima@example.com", passwordHash: testPasswordHash, level: "gold", points: 4200, totalVisits: 22 },
-      { name: "أحمد سالم الحارثي", phone: "+968 9934 5678", email: "ahmed@example.com", passwordHash: testPasswordHash, level: "bronze", points: 450, totalVisits: 3 },
-      { name: "مريم خالد العمري", phone: "+968 9945 6789", email: "mariam@example.com", passwordHash: testPasswordHash, level: "platinum", points: 8900, totalVisits: 41 },
+      { name: "محمد بن علي الراشدي", phone: "+968 9912 3456", email: "mohammed@example.com", passwordHash: testPasswordHash, level: "silver", points: 1350, totalVisits: 8, isEmailVerified: true },
+      { name: "فاطمة الزهراء البلوشي", phone: "+968 9923 4567", email: "fatima@example.com", passwordHash: testPasswordHash, level: "gold", points: 4200, totalVisits: 22, isEmailVerified: true },
+      { name: "أحمد سالم الحارثي", phone: "+968 9934 5678", email: "ahmed@example.com", passwordHash: testPasswordHash, level: "bronze", points: 450, totalVisits: 3, isEmailVerified: true },
+      { name: "مريم خالد العمري", phone: "+968 9945 6789", email: "mariam@example.com", passwordHash: testPasswordHash, level: "platinum", points: 8900, totalVisits: 41, isEmailVerified: true },
     ]);
 
     await db.insert(appointmentsTable).values([
