@@ -35,3 +35,4 @@ channel = "stable-25_05"
 [userenv.shared]
 ADMIN_EMAIL = "Saleh97793313@gmail.com"
 ADMIN_PASSWORD = "nabd@2026"
+EMAIL_USER = "Saleh97793313@gmail.com"
