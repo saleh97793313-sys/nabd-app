@@ -237,10 +237,16 @@ const [AppContextProvider, useAppContext] = createContextHook<AppContextType>(
             const data = JSON.parse(stored);
             setPatient(data);
             setIsAuthenticated(true);
+            setIsGuest(false);
             fetchNotifications(data.level || "all");
             if (data.phone) fetchAppointments(data.phone);
+          } else {
+            setPatient(GUEST_PATIENT);
+            setIsGuest(true);
           }
         } catch {
+          setPatient(GUEST_PATIENT);
+          setIsGuest(true);
         } finally {
           setAuthLoading(false);
         }

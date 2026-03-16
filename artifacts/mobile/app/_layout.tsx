@@ -24,15 +24,12 @@ const queryClient = new QueryClient();
 const SPLASH_MIN_DURATION = 2500;
 
 function AuthGate() {
-  const { isAuthenticated, authLoading, enterAsGuest } = useAppContext();
+  const { isAuthenticated, authLoading } = useAppContext();
   const segments = useSegments();
   const inAuthGroup = segments[0] === "auth";
 
   useEffect(() => {
     if (authLoading) return;
-    if (!isAuthenticated && !inAuthGroup) {
-      enterAsGuest();
-    }
     if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
     }
