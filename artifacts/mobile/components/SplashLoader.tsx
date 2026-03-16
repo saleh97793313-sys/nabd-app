@@ -5,7 +5,6 @@ import {
   Easing,
   Image,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 
@@ -14,19 +13,16 @@ const NAVY_DARK = "#0A1628";
 const NAVY = "#1A3A5C";
 
 export function SplashLoader() {
-  const logoScale = useRef(new Animated.Value(0.2)).current;
-  const logoOpacity = useRef(new Animated.Value(0)).current;
+  // Everything starts VISIBLE (matching the static splash) — no entrance flicker
   const pulseScale = useRef(new Animated.Value(1)).current;
 
   const ring1Opacity = useRef(new Animated.Value(0)).current;
-  const ring1Scale = useRef(new Animated.Value(0.6)).current;
+  const ring1Scale = useRef(new Animated.Value(1)).current;
   const ring2Opacity = useRef(new Animated.Value(0)).current;
-  const ring2Scale = useRef(new Animated.Value(0.6)).current;
+  const ring2Scale = useRef(new Animated.Value(1)).current;
 
-  const titleOpacity = useRef(new Animated.Value(0)).current;
-  const titleY = useRef(new Animated.Value(30)).current;
-  const taglineOpacity = useRef(new Animated.Value(0)).current;
-  const taglineY = useRef(new Animated.Value(20)).current;
+  const titleOpacity = useRef(new Animated.Value(1)).current;
+  const taglineOpacity = useRef(new Animated.Value(1)).current;
 
   const dot1Y = useRef(new Animated.Value(0)).current;
   const dot2Y = useRef(new Animated.Value(0)).current;
@@ -36,211 +32,146 @@ export function SplashLoader() {
   const shimmerX = useRef(new Animated.Value(-160)).current;
 
   useEffect(() => {
-    // --- Logo entrance (spring bounce) ---
-    Animated.sequence([
-      Animated.delay(100),
-      Animated.parallel([
-        Animated.spring(logoScale, {
-          toValue: 1,
-          tension: 55,
-          friction: 6,
+    // --- Pulse loop (starts immediately) ---
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseScale, {
+          toValue: 1.07,
+          duration: 900,
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
-        Animated.timing(logoOpacity, {
+        Animated.timing(pulseScale, {
           toValue: 1,
-          duration: 350,
+          duration: 900,
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
-      ]),
-    ]).start();
-
-    // --- Pulse loop after entrance ---
-    Animated.sequence([
-      Animated.delay(800),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseScale, {
-            toValue: 1.07,
-            duration: 800,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseScale, {
-            toValue: 1,
-            duration: 800,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-        ])
-      ),
-    ]).start();
+      ])
+    ).start();
 
     // --- Ripple ring 1 ---
-    const ripple = (opacityAnim: Animated.Value, scaleAnim: Animated.Value, delay: number) => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(ring1Opacity, {
+            toValue: 0.55,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(ring1Scale, {
+            toValue: 1,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(ring1Opacity, {
+            toValue: 0,
+            duration: 1300,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(ring1Scale, {
+            toValue: 1.7,
+            duration: 1300,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.delay(500),
+      ])
+    ).start();
+
+    // --- Ripple ring 2 (staggered) ---
+    Animated.sequence([
+      Animated.delay(700),
       Animated.loop(
         Animated.sequence([
-          Animated.delay(delay),
           Animated.parallel([
-            Animated.timing(opacityAnim, {
-              toValue: 0.5,
-              duration: 200,
+            Animated.timing(ring2Opacity, {
+              toValue: 0.4,
+              duration: 150,
               useNativeDriver: true,
             }),
-            Animated.timing(scaleAnim, {
-              toValue: 0.6,
+            Animated.timing(ring2Scale, {
+              toValue: 1,
               duration: 0,
               useNativeDriver: true,
             }),
           ]),
           Animated.parallel([
-            Animated.timing(opacityAnim, {
+            Animated.timing(ring2Opacity, {
               toValue: 0,
-              duration: 1200,
+              duration: 1300,
               easing: Easing.out(Easing.ease),
               useNativeDriver: true,
             }),
-            Animated.timing(scaleAnim, {
-              toValue: 1.5,
-              duration: 1200,
+            Animated.timing(ring2Scale, {
+              toValue: 1.7,
+              duration: 1300,
               easing: Easing.out(Easing.ease),
               useNativeDriver: true,
             }),
           ]),
-          Animated.delay(600),
+          Animated.delay(500),
         ])
-      );
-    };
-
-    setTimeout(() => {
-      ripple(ring1Opacity, ring1Scale, 0);
-      ripple(ring2Opacity, ring2Scale, 700);
-      ring1Opacity.setValue(0);
-      ring1Scale.setValue(0.6);
-      ring2Opacity.setValue(0);
-      ring2Scale.setValue(0.6);
-
-      Animated.loop(
-        Animated.sequence([
-          Animated.parallel([
-            Animated.timing(ring1Opacity, { toValue: 0.5, duration: 200, useNativeDriver: true }),
-            Animated.timing(ring1Scale, { toValue: 0.6, duration: 0, useNativeDriver: true }),
-          ]),
-          Animated.parallel([
-            Animated.timing(ring1Opacity, { toValue: 0, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-            Animated.timing(ring1Scale, { toValue: 1.5, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-          ]),
-          Animated.delay(600),
-        ])
-      ).start();
-
-      setTimeout(() => {
-        Animated.loop(
-          Animated.sequence([
-            Animated.parallel([
-              Animated.timing(ring2Opacity, { toValue: 0.4, duration: 200, useNativeDriver: true }),
-              Animated.timing(ring2Scale, { toValue: 0.6, duration: 0, useNativeDriver: true }),
-            ]),
-            Animated.parallel([
-              Animated.timing(ring2Opacity, { toValue: 0, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-              Animated.timing(ring2Scale, { toValue: 1.5, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-            ]),
-            Animated.delay(600),
-          ])
-        ).start();
-      }, 700);
-    }, 500);
-
-    // --- Title slides in ---
-    Animated.sequence([
-      Animated.delay(500),
-      Animated.parallel([
-        Animated.timing(titleOpacity, {
-          toValue: 1,
-          duration: 500,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.spring(titleY, {
-          toValue: 0,
-          tension: 60,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-      ]),
+      ),
     ]).start();
 
-    // --- Tagline fades in ---
-    Animated.sequence([
-      Animated.delay(800),
-      Animated.parallel([
-        Animated.timing(taglineOpacity, {
-          toValue: 1,
-          duration: 500,
+    // --- Shimmer sweep across logo ---
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerX, {
+          toValue: 160,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-        Animated.spring(taglineY, {
-          toValue: 0,
-          tension: 60,
-          friction: 8,
+        Animated.timing(shimmerX, {
+          toValue: -160,
+          duration: 0,
           useNativeDriver: true,
         }),
-      ]),
-    ]).start();
+        Animated.delay(2800),
+      ])
+    ).start();
 
-    // --- Dots appear and bounce ---
+    // --- Dots appear after 400ms then bounce ---
     Animated.sequence([
-      Animated.delay(1100),
+      Animated.delay(400),
       Animated.timing(dotsOpacity, {
         toValue: 1,
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }),
     ]).start();
 
     const bounceDot = (dot: Animated.Value, delay: number) => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay + 1100),
-          Animated.timing(dot, {
-            toValue: -10,
-            duration: 300,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.timing(dot, {
-            toValue: 0,
-            duration: 300,
-            easing: Easing.in(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.delay(400),
-        ])
-      ).start();
+      Animated.sequence([
+        Animated.delay(800 + delay),
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(dot, {
+              toValue: -11,
+              duration: 280,
+              easing: Easing.out(Easing.quad),
+              useNativeDriver: true,
+            }),
+            Animated.timing(dot, {
+              toValue: 0,
+              duration: 280,
+              easing: Easing.in(Easing.quad),
+              useNativeDriver: true,
+            }),
+            Animated.delay(450),
+          ])
+        ),
+      ]).start();
     };
     bounceDot(dot1Y, 0);
-    bounceDot(dot2Y, 150);
-    bounceDot(dot3Y, 300);
-
-    // --- Shimmer sweep on logo ---
-    Animated.sequence([
-      Animated.delay(900),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(shimmerX, {
-            toValue: 160,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(shimmerX, {
-            toValue: -160,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-          Animated.delay(2200),
-        ])
-      ),
-    ]).start();
+    bounceDot(dot2Y, 160);
+    bounceDot(dot3Y, 320);
   }, []);
 
   return (
@@ -270,16 +201,11 @@ export function SplashLoader() {
             }]}
           />
 
-          {/* Logo */}
+          {/* Logo — starts fully visible, no entrance animation */}
           <Animated.View
             style={[
               styles.logoWrapper,
-              {
-                opacity: logoOpacity,
-                transform: [
-                  { scale: Animated.multiply(logoScale, pulseScale) },
-                ],
-              },
+              { transform: [{ scale: pulseScale }] },
             ]}
           >
             <Image
@@ -287,7 +213,6 @@ export function SplashLoader() {
               style={styles.logoImage}
               resizeMode="cover"
             />
-
             {/* Shimmer sweep */}
             <Animated.View
               style={[
@@ -298,26 +223,16 @@ export function SplashLoader() {
           </Animated.View>
         </View>
 
-        {/* App Name */}
-        <Animated.Text
-          style={[
-            styles.appName,
-            { opacity: titleOpacity, transform: [{ translateY: titleY }] },
-          ]}
-        >
+        {/* App Name — starts fully visible */}
+        <Animated.Text style={[styles.appName, { opacity: titleOpacity }]}>
           Ocure
         </Animated.Text>
 
-        {/* Separator */}
-        <Animated.View style={[styles.separator, { opacity: titleOpacity }]} />
+        {/* Teal separator */}
+        <View style={styles.separator} />
 
-        {/* Tagline */}
-        <Animated.Text
-          style={[
-            styles.tagline,
-            { opacity: taglineOpacity, transform: [{ translateY: taglineY }] },
-          ]}
-        >
+        {/* Tagline — starts fully visible */}
+        <Animated.Text style={[styles.tagline, { opacity: taglineOpacity }]}>
           منصة الولاء الصحي
         </Animated.Text>
 
@@ -351,17 +266,17 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   logoArea: {
-    width: 200,
-    height: 200,
+    width: 210,
+    height: 210,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
   },
   rippleRing: {
     position: "absolute",
-    width: 160,
-    height: 160,
-    borderRadius: 44,
+    width: 165,
+    height: 165,
+    borderRadius: 46,
     borderWidth: 2,
     borderColor: TEAL,
   },
