@@ -4,6 +4,8 @@ import {
   Animated,
   Easing,
   Image,
+  Modal,
+  StatusBar,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -32,7 +34,6 @@ export function SplashLoader() {
   const shimmerX = useRef(new Animated.Value(-LOGO)).current;
 
   useEffect(() => {
-    // Pulse
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseScale, { toValue: 1.06, duration: 1000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
@@ -40,7 +41,6 @@ export function SplashLoader() {
       ])
     ).start();
 
-    // Ripple 1
     Animated.loop(
       Animated.sequence([
         Animated.timing(ring1Scale, { toValue: 1, duration: 0, useNativeDriver: true }),
@@ -53,7 +53,6 @@ export function SplashLoader() {
       ])
     ).start();
 
-    // Ripple 2 (offset)
     Animated.sequence([
       Animated.delay(750),
       Animated.loop(
@@ -69,7 +68,6 @@ export function SplashLoader() {
       ),
     ]).start();
 
-    // Shimmer
     Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerX, { toValue: LOGO, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
@@ -78,7 +76,6 @@ export function SplashLoader() {
       ])
     ).start();
 
-    // Dots
     Animated.sequence([
       Animated.delay(500),
       Animated.timing(dotsOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
@@ -102,74 +99,71 @@ export function SplashLoader() {
   }, []);
 
   return (
-    <LinearGradient
-      colors={[NAVY_DARK, NAVY]}
-      style={styles.container}
-      start={{ x: 0.3, y: 0 }}
-      end={{ x: 0.7, y: 1 }}
-    >
-      {/* ── Logo area ── */}
-      <View style={[styles.logoArea, { width: LOGO * 2, height: LOGO * 2 }]}>
+    <Modal visible statusBarTranslucent animationType="none">
+      <StatusBar barStyle="light-content" backgroundColor={NAVY_DARK} />
+      <LinearGradient
+        colors={[NAVY_DARK, NAVY]}
+        style={styles.container}
+        start={{ x: 0.3, y: 0 }}
+        end={{ x: 0.7, y: 1 }}
+      >
+        <View style={[styles.logoArea, { width: LOGO * 2, height: LOGO * 2 }]}>
 
-        <Animated.View style={[
-          styles.rippleRing,
-          { width: LOGO, height: LOGO, borderRadius: RADIUS },
-          { opacity: ring1Opacity, transform: [{ scale: ring1Scale }] },
-        ]} />
-
-        <Animated.View style={[
-          styles.rippleRing,
-          { width: LOGO, height: LOGO, borderRadius: RADIUS },
-          { opacity: ring2Opacity, transform: [{ scale: ring2Scale }] },
-        ]} />
-
-        <Animated.View style={[
-          styles.logoWrapper,
-          { width: LOGO, height: LOGO, borderRadius: RADIUS },
-          { transform: [{ scale: pulseScale }] },
-        ]}>
-          <Image
-            source={require("@/assets/images/icon.png")}
-            style={{ width: LOGO, height: LOGO }}
-            resizeMode="cover"
-          />
           <Animated.View style={[
-            styles.shimmer,
-            { width: LOGO * 0.28 },
-            { transform: [{ translateX: shimmerX }] },
+            styles.rippleRing,
+            { width: LOGO, height: LOGO, borderRadius: RADIUS },
+            { opacity: ring1Opacity, transform: [{ scale: ring1Scale }] },
           ]} />
+
+          <Animated.View style={[
+            styles.rippleRing,
+            { width: LOGO, height: LOGO, borderRadius: RADIUS },
+            { opacity: ring2Opacity, transform: [{ scale: ring2Scale }] },
+          ]} />
+
+          <Animated.View style={[
+            styles.logoWrapper,
+            { width: LOGO, height: LOGO, borderRadius: RADIUS },
+            { transform: [{ scale: pulseScale }] },
+          ]}>
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: LOGO, height: LOGO }}
+              resizeMode="cover"
+            />
+            <Animated.View style={[
+              styles.shimmer,
+              { width: LOGO * 0.28 },
+              { transform: [{ translateX: shimmerX }] },
+            ]} />
+          </Animated.View>
+        </View>
+
+        <View style={styles.textBlock}>
+          <Text style={[styles.appName, { fontSize: Math.round(W * 0.15) }]}>Ocure</Text>
+          <View style={[styles.separator, { width: W * 0.14 }]} />
+          <Text style={[styles.tagline, { fontSize: Math.round(W * 0.048) }]}>
+            منصة الولاء الصحي
+          </Text>
+        </View>
+
+        <Animated.View style={[styles.dotsRow, { marginTop: H * 0.06, opacity: dotsOpacity }]}>
+          {[dot1Y, dot2Y, dot3Y].map((dotY, i) => (
+            <Animated.View key={i} style={[styles.dot, { transform: [{ translateY: dotY }] }]} />
+          ))}
         </Animated.View>
-      </View>
 
-      {/* ── Text ── */}
-      <View style={styles.textBlock}>
-        <Text style={[styles.appName, { fontSize: Math.round(W * 0.15) }]}>Ocure</Text>
-        <View style={[styles.separator, { width: W * 0.14 }]} />
-        <Text style={[styles.tagline, { fontSize: Math.round(W * 0.048) }]}>
-          منصة الولاء الصحي
-        </Text>
-      </View>
-
-      {/* ── Dots ── */}
-      <Animated.View style={[styles.dotsRow, { marginTop: H * 0.06, opacity: dotsOpacity }]}>
-        {[dot1Y, dot2Y, dot3Y].map((dotY, i) => (
-          <Animated.View key={i} style={[styles.dot, { transform: [{ translateY: dotY }] }]} />
-        ))}
-      </Animated.View>
-
-      {/* ── Footer ── */}
-      <Text style={[styles.footer, { bottom: H * 0.05 }]}>© 2026 Ocure</Text>
-    </LinearGradient>
+        <Text style={[styles.footer, { bottom: H * 0.05 }]}>© 2026 Ocure</Text>
+      </LinearGradient>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    // Absolute fill — covers the FULL SCREEN regardless of parent container
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 999,
   },
   logoArea: {
     alignItems: "center",
