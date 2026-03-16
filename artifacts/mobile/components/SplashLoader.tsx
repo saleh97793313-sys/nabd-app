@@ -1,185 +1,332 @@
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
-  Dimensions,
   Easing,
+  Image,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 
-const { width } = Dimensions.get("window");
-
-const BRAND_GREEN = "#00C896";
-const BRAND_NAVY = "#1A3A5C";
+const TEAL = "#05C4C2";
+const NAVY_DARK = "#0A1628";
+const NAVY = "#1A3A5C";
 
 export function SplashLoader() {
-  // Animations
-  const logoScale = useRef(new Animated.Value(0.3)).current;
+  const logoScale = useRef(new Animated.Value(0.2)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
+  const pulseScale = useRef(new Animated.Value(1)).current;
+
+  const ring1Opacity = useRef(new Animated.Value(0)).current;
+  const ring1Scale = useRef(new Animated.Value(0.6)).current;
+  const ring2Opacity = useRef(new Animated.Value(0)).current;
+  const ring2Scale = useRef(new Animated.Value(0.6)).current;
+
   const titleOpacity = useRef(new Animated.Value(0)).current;
-  const titleY = useRef(new Animated.Value(20)).current;
+  const titleY = useRef(new Animated.Value(30)).current;
   const taglineOpacity = useRef(new Animated.Value(0)).current;
-  const dot1 = useRef(new Animated.Value(0.3)).current;
-  const dot2 = useRef(new Animated.Value(0.3)).current;
-  const dot3 = useRef(new Animated.Value(0.3)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const glowOpacity = useRef(new Animated.Value(0.3)).current;
+  const taglineY = useRef(new Animated.Value(20)).current;
+
+  const dot1Y = useRef(new Animated.Value(0)).current;
+  const dot2Y = useRef(new Animated.Value(0)).current;
+  const dot3Y = useRef(new Animated.Value(0)).current;
+  const dotsOpacity = useRef(new Animated.Value(0)).current;
+
+  const shimmerX = useRef(new Animated.Value(-160)).current;
 
   useEffect(() => {
-    // Logo entrance
-    Animated.parallel([
-      Animated.spring(logoScale, {
-        toValue: 1,
-        tension: 60,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-      Animated.timing(logoOpacity, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Title after logo
+    // --- Logo entrance (spring bounce) ---
     Animated.sequence([
-      Animated.delay(300),
+      Animated.delay(100),
       Animated.parallel([
-        Animated.timing(titleOpacity, {
+        Animated.spring(logoScale, {
           toValue: 1,
-          duration: 400,
-          easing: Easing.out(Easing.ease),
+          tension: 55,
+          friction: 6,
           useNativeDriver: true,
         }),
-        Animated.timing(titleY, {
-          toValue: 0,
-          duration: 400,
-          easing: Easing.out(Easing.ease),
+        Animated.timing(logoOpacity, {
+          toValue: 1,
+          duration: 350,
           useNativeDriver: true,
         }),
       ]),
     ]).start();
 
-    // Tagline after title
+    // --- Pulse loop after entrance ---
     Animated.sequence([
-      Animated.delay(600),
-      Animated.timing(taglineOpacity, {
+      Animated.delay(800),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseScale, {
+            toValue: 1.07,
+            duration: 800,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseScale, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ])
+      ),
+    ]).start();
+
+    // --- Ripple ring 1 ---
+    const ripple = (opacityAnim: Animated.Value, scaleAnim: Animated.Value, delay: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.parallel([
+            Animated.timing(opacityAnim, {
+              toValue: 0.5,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(scaleAnim, {
+              toValue: 0.6,
+              duration: 0,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(opacityAnim, {
+              toValue: 0,
+              duration: 1200,
+              easing: Easing.out(Easing.ease),
+              useNativeDriver: true,
+            }),
+            Animated.timing(scaleAnim, {
+              toValue: 1.5,
+              duration: 1200,
+              easing: Easing.out(Easing.ease),
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.delay(600),
+        ])
+      );
+    };
+
+    setTimeout(() => {
+      ripple(ring1Opacity, ring1Scale, 0);
+      ripple(ring2Opacity, ring2Scale, 700);
+      ring1Opacity.setValue(0);
+      ring1Scale.setValue(0.6);
+      ring2Opacity.setValue(0);
+      ring2Scale.setValue(0.6);
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(ring1Opacity, { toValue: 0.5, duration: 200, useNativeDriver: true }),
+            Animated.timing(ring1Scale, { toValue: 0.6, duration: 0, useNativeDriver: true }),
+          ]),
+          Animated.parallel([
+            Animated.timing(ring1Opacity, { toValue: 0, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+            Animated.timing(ring1Scale, { toValue: 1.5, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+          ]),
+          Animated.delay(600),
+        ])
+      ).start();
+
+      setTimeout(() => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.parallel([
+              Animated.timing(ring2Opacity, { toValue: 0.4, duration: 200, useNativeDriver: true }),
+              Animated.timing(ring2Scale, { toValue: 0.6, duration: 0, useNativeDriver: true }),
+            ]),
+            Animated.parallel([
+              Animated.timing(ring2Opacity, { toValue: 0, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+              Animated.timing(ring2Scale, { toValue: 1.5, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+            ]),
+            Animated.delay(600),
+          ])
+        ).start();
+      }, 700);
+    }, 500);
+
+    // --- Title slides in ---
+    Animated.sequence([
+      Animated.delay(500),
+      Animated.parallel([
+        Animated.timing(titleOpacity, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.spring(titleY, {
+          toValue: 0,
+          tension: 60,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    // --- Tagline fades in ---
+    Animated.sequence([
+      Animated.delay(800),
+      Animated.parallel([
+        Animated.timing(taglineOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.spring(taglineY, {
+          toValue: 0,
+          tension: 60,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    // --- Dots appear and bounce ---
+    Animated.sequence([
+      Animated.delay(1100),
+      Animated.timing(dotsOpacity, {
         toValue: 1,
-        duration: 400,
+        duration: 300,
         useNativeDriver: true,
       }),
     ]).start();
 
-    // Pulse loop on logo
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 700,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 700,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    // Glow pulse
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowOpacity, {
-          toValue: 0.8,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-        Animated.timing(glowOpacity, {
-          toValue: 0.2,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    // Loading dots
-    const dotAnimation = (dot: Animated.Value, delay: number) =>
+    const bounceDot = (dot: Animated.Value, delay: number) => {
       Animated.loop(
         Animated.sequence([
-          Animated.delay(delay),
+          Animated.delay(delay + 1100),
           Animated.timing(dot, {
-            toValue: 1,
-            duration: 350,
+            toValue: -10,
+            duration: 300,
+            easing: Easing.out(Easing.quad),
             useNativeDriver: true,
           }),
           Animated.timing(dot, {
-            toValue: 0.3,
-            duration: 350,
+            toValue: 0,
+            duration: 300,
+            easing: Easing.in(Easing.quad),
             useNativeDriver: true,
           }),
-          Animated.delay(350),
+          Animated.delay(400),
         ])
-      );
+      ).start();
+    };
+    bounceDot(dot1Y, 0);
+    bounceDot(dot2Y, 150);
+    bounceDot(dot3Y, 300);
 
-    dotAnimation(dot1, 0).start();
-    dotAnimation(dot2, 200).start();
-    dotAnimation(dot3, 400).start();
+    // --- Shimmer sweep on logo ---
+    Animated.sequence([
+      Animated.delay(900),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(shimmerX, {
+            toValue: 160,
+            duration: 900,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(shimmerX, {
+            toValue: -160,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+          Animated.delay(2200),
+        ])
+      ),
+    ]).start();
   }, []);
 
   return (
-    <View style={styles.container}>
-      {/* Background gradient effect */}
-      <View style={styles.bgCircle1} />
-      <View style={styles.bgCircle2} />
-
+    <LinearGradient
+      colors={[NAVY_DARK, NAVY]}
+      style={styles.container}
+      start={{ x: 0.2, y: 0 }}
+      end={{ x: 0.8, y: 1 }}
+    >
       <View style={styles.content}>
-        {/* Logo */}
-        <Animated.View
-          style={[
-            styles.logoWrapper,
-            {
-              transform: [{ scale: Animated.multiply(logoScale, pulseAnim) }],
-              opacity: logoOpacity,
-            },
-          ]}
-        >
-          {/* Glow ring */}
-          <Animated.View style={[styles.glowRing, { opacity: glowOpacity }]} />
 
-          {/* Icon container */}
-          <View style={styles.iconContainer}>
-            {/* ECG/Heartbeat SVG-like using Views */}
-            <HeartbeatIcon />
-          </View>
-        </Animated.View>
+        {/* Logo + Ripple rings */}
+        <View style={styles.logoArea}>
+
+          {/* Ripple ring 1 */}
+          <Animated.View
+            style={[styles.rippleRing, {
+              opacity: ring1Opacity,
+              transform: [{ scale: ring1Scale }],
+            }]}
+          />
+          {/* Ripple ring 2 */}
+          <Animated.View
+            style={[styles.rippleRing, {
+              opacity: ring2Opacity,
+              transform: [{ scale: ring2Scale }],
+            }]}
+          />
+
+          {/* Logo */}
+          <Animated.View
+            style={[
+              styles.logoWrapper,
+              {
+                opacity: logoOpacity,
+                transform: [
+                  { scale: Animated.multiply(logoScale, pulseScale) },
+                ],
+              },
+            ]}
+          >
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={styles.logoImage}
+              resizeMode="cover"
+            />
+
+            {/* Shimmer sweep */}
+            <Animated.View
+              style={[
+                styles.shimmer,
+                { transform: [{ translateX: shimmerX }] },
+              ]}
+            />
+          </Animated.View>
+        </View>
 
         {/* App Name */}
         <Animated.Text
           style={[
             styles.appName,
-            {
-              opacity: titleOpacity,
-              transform: [{ translateY: titleY }],
-            },
+            { opacity: titleOpacity, transform: [{ translateY: titleY }] },
           ]}
         >
-          نبض
+          Ocure
         </Animated.Text>
 
+        {/* Separator */}
+        <Animated.View style={[styles.separator, { opacity: titleOpacity }]} />
+
         {/* Tagline */}
-        <Animated.Text style={[styles.tagline, { opacity: taglineOpacity }]}>
+        <Animated.Text
+          style={[
+            styles.tagline,
+            { opacity: taglineOpacity, transform: [{ translateY: taglineY }] },
+          ]}
+        >
           منصة الولاء الصحي
         </Animated.Text>
 
         {/* Loading dots */}
-        <Animated.View style={[styles.dotsRow, { opacity: taglineOpacity }]}>
-          {[dot1, dot2, dot3].map((dot, i) => (
+        <Animated.View style={[styles.dotsRow, { opacity: dotsOpacity }]}>
+          {[dot1Y, dot2Y, dot3Y].map((dotY, i) => (
             <Animated.View
               key={i}
-              style={[styles.dot, { opacity: dot, transform: [{ scale: dot }] }]}
+              style={[styles.dot, { transform: [{ translateY: dotY }] }]}
             />
           ))}
         </Animated.View>
@@ -187,126 +334,98 @@ export function SplashLoader() {
 
       {/* Footer */}
       <Animated.Text style={[styles.footer, { opacity: taglineOpacity }]}>
-        © 2026 نبض
+        © 2026 Ocure
       </Animated.Text>
-    </View>
-  );
-}
-
-function HeartbeatIcon() {
-  return (
-    <View style={styles.heartIcon}>
-      {/* Simplified heartbeat line using boxes */}
-      <View style={styles.ecgLine}>
-        <View style={[styles.ecgSegment, { width: 8, height: 2 }]} />
-        <View style={[styles.ecgSegment, { width: 2, height: 14, marginTop: -6 }]} />
-        <View style={[styles.ecgSegment, { width: 2, height: 28, marginTop: -28 }]} />
-        <View style={[styles.ecgSegment, { width: 2, height: 14, marginTop: -6 }]} />
-        <View style={[styles.ecgSegment, { width: 10, height: 2 }]} />
-      </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
-  bgCircle1: {
-    position: "absolute",
-    width: 350,
-    height: 350,
-    borderRadius: 175,
-    backgroundColor: BRAND_GREEN,
-    opacity: 0.05,
-    top: -80,
-    right: -80,
-  },
-  bgCircle2: {
-    position: "absolute",
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: BRAND_NAVY,
-    opacity: 0.04,
-    bottom: -60,
-    left: -60,
-  },
   content: {
     alignItems: "center",
-    gap: 16,
+    gap: 18,
   },
-  logoWrapper: {
-    width: 110,
-    height: 110,
+  logoArea: {
+    width: 200,
+    height: 200,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
   },
-  glowRing: {
+  rippleRing: {
     position: "absolute",
-    width: 110,
-    height: 110,
-    borderRadius: 30,
-    backgroundColor: BRAND_GREEN,
+    width: 160,
+    height: 160,
+    borderRadius: 44,
+    borderWidth: 2,
+    borderColor: TEAL,
   },
-  iconContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 26,
-    backgroundColor: BRAND_GREEN,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: BRAND_GREEN,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 12,
+  logoWrapper: {
+    width: 130,
+    height: 130,
+    borderRadius: 36,
+    overflow: "hidden",
+    shadowColor: TEAL,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 30,
+    elevation: 20,
   },
-  heartIcon: {
-    alignItems: "center",
-    justifyContent: "center",
+  logoImage: {
+    width: 130,
+    height: 130,
+    borderRadius: 36,
   },
-  ecgLine: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  ecgSegment: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 2,
+  shimmer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 50,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    transform: [{ skewX: "-20deg" }],
   },
   appName: {
-    fontSize: 52,
+    fontSize: 54,
     fontWeight: "800",
-    color: BRAND_NAVY,
-    letterSpacing: 2,
+    color: "#FFFFFF",
+    letterSpacing: 3,
+  },
+  separator: {
+    width: 48,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: TEAL,
+    marginTop: -6,
+    marginBottom: -2,
   },
   tagline: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "400",
-    color: "#64748B",
-    letterSpacing: 1,
+    color: "rgba(255,255,255,0.65)",
+    letterSpacing: 1.5,
+    textAlign: "center",
   },
   dotsRow: {
     flexDirection: "row",
-    gap: 8,
-    marginTop: 24,
-    alignItems: "center",
+    gap: 10,
+    marginTop: 28,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: BRAND_GREEN,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: TEAL,
   },
   footer: {
     position: "absolute",
-    bottom: 48,
+    bottom: 52,
     fontSize: 12,
-    color: "#94A3B8",
-    fontWeight: "400",
+    color: "rgba(255,255,255,0.3)",
+    letterSpacing: 1,
   },
 });
