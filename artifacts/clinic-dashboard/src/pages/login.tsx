@@ -33,8 +33,8 @@ export default function LoginPage() {
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white shadow-2xl shadow-primary/30 mx-auto mb-4">
             <HeartPulse size={36} strokeWidth={2} />
           </div>
-          <h1 className="text-4xl font-bold text-foreground">نبض</h1>
-          <p className="text-muted-foreground mt-1 text-sm">منصة الولاء الصحي — لوحة التحكم</p>
+          <h1 className="text-4xl font-bold text-foreground">Ocure</h1>
+          <p className="text-muted-foreground mt-1 text-sm">أو كيور | منصة الولاء الصحي — لوحة التحكم</p>
         </div>
 
         {/* Card */}
@@ -116,7 +116,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2026 نبض — منصة الولاء الصحي
+          © 2026 Ocure أو كيور — منصة الولاء الصحي
         </p>
       </div>
     </div>

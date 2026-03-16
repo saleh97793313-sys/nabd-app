@@ -94,9 +94,9 @@ export default function LoginScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={[styles.appName, { color: colors.tint }]}>نبض</Text>
+          <Text style={[styles.appName, { color: colors.tint }]}>Ocure</Text>
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>
-            منصة الولاء الصحي
+            أو كيور | منصة الولاء الصحي
           </Text>
         </View>
 

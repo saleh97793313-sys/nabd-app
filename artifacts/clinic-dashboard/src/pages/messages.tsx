@@ -134,7 +134,7 @@ export default function MessagesPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="مثال: عرض خاص لأعضاء نبض"
+                  placeholder="مثال: عرض خاص لأعضاء Ocure"
                   className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm text-right placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </div>

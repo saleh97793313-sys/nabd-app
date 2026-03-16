@@ -159,7 +159,7 @@ function LoyaltyCard({ patient, colors, onQRPress }: { patient: PatientData; col
       </View>
       <View style={styles.cardContent}>
         <View style={styles.cardTopRow}>
-          <Text style={styles.cardBrand}>نبض</Text>
+          <Text style={styles.cardBrand}>Ocure</Text>
           <Text style={styles.cardLevelBadge}>{levelConfig.label}</Text>
         </View>
 

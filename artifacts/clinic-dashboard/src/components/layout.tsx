@@ -25,8 +25,8 @@ const navItems = [
 type Notif = { id: number; title: string; body: string; type: "info" | "success" | "warning"; read: boolean; time: string };
 
 const INIT_NOTIFS: Notif[] = [
-  { id: 1, title: "مرحباً بك في نبض!", body: "أنت مسجّل دخول كمالك التطبيق بصلاحيات كاملة.", type: "success", read: false, time: "الآن" },
-  { id: 2, title: "تحديث النظام", body: "تم تحديث منصة نبض بنجاح إلى الإصدار الأحدث.", type: "info", read: false, time: "منذ ساعة" },
+  { id: 1, title: "مرحباً بك في Ocure!", body: "أنت مسجّل دخول كمالك التطبيق بصلاحيات كاملة.", type: "success", read: false, time: "الآن" },
+  { id: 2, title: "تحديث النظام", body: "تم تحديث منصة Ocure بنجاح إلى الإصدار الأحدث.", type: "info", read: false, time: "منذ ساعة" },
   { id: 3, title: "نقاط المرضى", body: "لديك مرضى في المستوى الذهبي — قد يستحقون عروضاً حصرية.", type: "warning", read: true, time: "أمس" },
 ];
 
@@ -99,7 +99,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
         {(!collapsed || isMobile) && (
           <div className="overflow-hidden">
-            <h1 className="font-bold text-lg leading-tight text-foreground whitespace-nowrap">نبض</h1>
+            <h1 className="font-bold text-lg leading-tight text-foreground whitespace-nowrap">Ocure</h1>
             <p className="text-xs text-muted-foreground">لوحة التحكم</p>
           </div>
         )}
@@ -223,7 +223,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </button>
 
           <div className="hidden lg:block">
-            <h2 className="text-xl font-bold text-foreground">{currentPage?.name || "نبض"}</h2>
+            <h2 className="text-xl font-bold text-foreground">{currentPage?.name || "Ocure"}</h2>
           </div>
 
           <div className="flex-1 max-w-xs lg:max-w-sm mx-auto lg:mx-0 lg:ms-4">
