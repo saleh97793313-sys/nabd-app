@@ -1,18 +1,22 @@
 # EAS Build Info — نبض (Nabd) Android APK
 
-## Latest Build ✅ COMPLETED (auth fix - no more "زائر" after login)
+## Latest Build ✅ COMPLETED (OTP + keyboard nav + auth fix)
 
 | Field | Value |
 |-------|-------|
-| Build ID | `47edf78a-569f-448a-8130-8abc002556f3` |
+| Build ID | `b4bdb863-bc78-4f99-8d94-a3e229c28cb9` |
 | Platform | Android |
 | Profile | preview (APK) |
 | Status | ✅ finished |
-| Finished at | 2026-03-16 00:26:29 |
-| Build Logs | https://expo.dev/accounts/saleh99/projects/nabd-app/builds/47edf78a-569f-448a-8130-8abc002556f3 |
-| **APK Download URL** | **https://expo.dev/artifacts/eas/9TaBEAbUUA8bRcnSyah2hx.apk** |
+| Finished at | 2026-03-16 01:26:48 |
+| Build Logs | https://expo.dev/accounts/saleh99/projects/nabd-app/builds/b4bdb863-bc78-4f99-8d94-a3e229c28cb9 |
+| **APK Download URL** | **https://expo.dev/artifacts/eas/oju3trWDdWSz4yBiqyFLJM.apk** |
 
-**Fix applied:** Removed `enterAsGuest()` race condition from `AuthGate` in `_layout.tsx`. Previously, this caused the app to override a successful login with guest mode due to a timing issue between state updates and navigation. Now `restoreAuth()` correctly handles guest initialization.
+**Features added:**
+- نظام OTP: رمز تحقق يُرسل للإيميل عند التسجيل أو تسجيل الدخول لحساب غير مفعّل
+- شاشة التحقق: 6 خانات تلقائية مع عداد إعادة الإرسال (60 ثانية)
+- كيبورد: انتقال تلقائي بين الحقول + تركيز فوري عند فتح الشاشة
+- إصلاح bug تسجيل الدخول: حذف `enterAsGuest` race condition من `AuthGate`
 
 ## Previous Build (Railway API fix)
 
