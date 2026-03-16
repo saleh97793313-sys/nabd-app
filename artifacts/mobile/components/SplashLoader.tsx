@@ -123,11 +123,11 @@ export function SplashLoader() {
 
           <Animated.View style={[
             styles.logoWrapper,
-            { width: LOGO, height: LOGO, borderRadius: RADIUS },
+            { width: LOGO, height: LOGO },
             { transform: [{ scale: pulseScale }] },
           ]}>
             <Image
-              source={require("@/assets/images/icon.png")}
+              source={require("@/assets/images/icon-transparent.png")}
               style={{ width: LOGO, height: LOGO }}
               resizeMode="cover"
             />
@@ -177,11 +177,6 @@ const styles = StyleSheet.create({
   },
   logoWrapper: {
     overflow: "hidden",
-    shadowColor: TEAL,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 40,
-    elevation: 24,
   },
   shimmer: {
     position: "absolute",
